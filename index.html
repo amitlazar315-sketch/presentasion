@@ -1,0 +1,1496 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DUPLE · מצגת משקיעים · אסטרטגיה, לא מזל</title>
+
+<!-- ============ FONTS ============ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&family=Assistant:wght@400;600;700;800&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* ====================================================================
+   DUPLE — DESIGN TOKENS
+   ==================================================================== */
+:root{
+  --navy-deep:  #0a1628;
+  --navy-2:     #0e1d33;
+  --navy-3:     #122440;
+  --cyan-brand: #5BAFD6;
+  --blue-mid:   #3B7CA5;
+  --white:      #FFFFFF;
+  --ink:        #0a1628;
+  --ink-soft:   #2b3a4f;
+  --muted:      rgba(255,255,255,0.65);
+  --muted-2:    rgba(255,255,255,0.42);
+  --hairline:   rgba(91,175,214,0.22);
+  --hairline-2: rgba(91,175,214,0.40);
+  --cyan-08:    rgba(91,175,214,0.08);
+  --cyan-15:    rgba(91,175,214,0.15);
+  --cyan-50:    rgba(91,175,214,0.50);
+  --cyan-90:    rgba(91,175,214,0.90);
+  --glow:       0 0 80px rgba(91,175,214,0.18);
+
+  --he: "Heebo","Assistant",system-ui,sans-serif;
+  --num: "Inter","Heebo",system-ui,sans-serif;
+
+  --maxw: 1240px;
+  --pad: clamp(28px, 5vw, 96px);
+}
+
+/* ====================================================================
+   RESET
+   ==================================================================== */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--he);
+  background:var(--navy-deep);
+  color:var(--white);
+  overflow:hidden;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img{display:block;max-width:100%}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* ====================================================================
+   SLIDE ENGINE — full-viewport scroll-snap deck
+   ==================================================================== */
+#deck{
+  height:100vh;
+  overflow-y:scroll;
+  scroll-snap-type:y mandatory;
+  scroll-behavior:smooth;
+  scrollbar-width:none;
+}
+#deck::-webkit-scrollbar{display:none}
+
+.slide{
+  position:relative;
+  min-height:100vh;
+  width:100%;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:clamp(60px,9vh,110px) var(--pad) clamp(48px,7vh,88px);
+  overflow:hidden;
+}
+.slide__inner{width:100%;max-width:var(--maxw);margin:0 auto;position:relative;z-index:2}
+
+/* dark / light modes */
+.slide--dark{background:var(--navy-deep);color:var(--white)}
+.slide--dark2{background:
+  radial-gradient(1200px 700px at 80% -10%, rgba(91,175,214,0.10), transparent 60%),
+  linear-gradient(180deg,var(--navy-deep),var(--navy-2));color:var(--white)}
+.slide--light{
+  background:linear-gradient(180deg,#ffffff,#f4f8fb);color:var(--ink)}
+.slide--light .eyebrow{color:var(--blue-mid)}
+
+/* subtle ambient glow on dark slides */
+.slide--dark::before,.slide--dark2::before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(900px 520px at 78% 12%,rgba(91,175,214,0.10),transparent 55%);
+}
+/* dotted "field" background — like the website, concentrated where the blue glow is */
+.slide--dark::after,.slide--dark2::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background-image:radial-gradient(circle, rgba(91,175,214,0.22) 1.3px, transparent 1.6px);
+  background-size:26px 26px;
+  -webkit-mask:radial-gradient(115% 95% at 80% 8%, #000 0%, rgba(0,0,0,.35) 45%, transparent 78%);
+          mask:radial-gradient(115% 95% at 80% 8%, #000 0%, rgba(0,0,0,.35) 45%, transparent 78%);
+  animation:dotsDrift 26s linear infinite;
+}
+@keyframes dotsDrift{from{background-position:0 0}to{background-position:0 -26px}}
+/* dotted "field" background on light slides — blue dots on white, subtle */
+.slide--light::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background-image:radial-gradient(circle, rgba(59,124,165,0.16) 1.2px, transparent 1.5px);
+  background-size:26px 26px;
+  -webkit-mask:radial-gradient(115% 95% at 80% 8%, #000 0%, rgba(0,0,0,.3) 45%, transparent 78%);
+          mask:radial-gradient(115% 95% at 80% 8%, #000 0%, rgba(0,0,0,.3) 45%, transparent 78%);
+  animation:dotsDrift 26s linear infinite;
+}
+
+/* ====================================================================
+   TYPOGRAPHY
+   ==================================================================== */
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.55em;
+  font-size:clamp(12px,1.1vw,15px);font-weight:700;letter-spacing:.14em;
+  color:#fff;text-transform:uppercase;
+  margin-bottom:clamp(14px,2vh,26px);
+}
+.slide--light .eyebrow{color:var(--blue-mid)}
+
+h1.title{font-size:clamp(40px,7vw,104px);font-weight:900;line-height:.98;letter-spacing:-.01em}
+h2.headline{font-size:clamp(30px,5vw,68px);font-weight:800;line-height:1.04;letter-spacing:-.01em;
+  margin-bottom:clamp(18px,2.6vh,30px)}
+/* uniform gap between every headline and the content directly below it */
+h2.headline + *{margin-top:0 !important}
+h3.sub{font-size:clamp(20px,2.6vw,34px);font-weight:700;line-height:1.15}
+.lead{font-size:clamp(17px,1.7vw,24px);font-weight:400;line-height:1.55;color:var(--muted);max-width:46ch}
+.slide--light .lead{color:var(--ink-soft)}
+.accent{color:#fff}
+.slide--light .accent{color:var(--blue-mid)}
+.thin{font-weight:300}
+
+/* ====================================================================
+   NAV / CHROME
+   ==================================================================== */
+.progress{position:fixed;top:0;right:0;left:0;height:9px;z-index:70;background:rgba(91,175,214,.12)}
+.progress__bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan-brand),var(--blue-mid));
+  box-shadow:0 0 16px rgba(91,175,214,.7);transition:width .25s ease}
+
+.nav-arrows{position:fixed;bottom:26px;left:clamp(20px,4vw,46px);z-index:60;display:flex;gap:10px}
+.nav-arrows button{
+  width:46px;height:46px;border-radius:50%;
+  border:1px solid var(--hairline-2);
+  background:rgba(10,22,40,.55);backdrop-filter:blur(8px);
+  color:var(--cyan-brand);font-size:20px;line-height:1;
+  display:grid;place-items:center;transition:.2s;
+}
+.nav-arrows button:hover{background:var(--cyan-brand);color:var(--navy-deep);transform:translateY(-2px)}
+body.chrome-dark .nav-arrows button{background:rgba(255,255,255,.7);border-color:var(--hairline-2)}
+
+.counter{position:fixed;bottom:30px;right:clamp(20px,4vw,46px);z-index:60;
+  font-family:var(--num);font-size:clamp(26px,3vw,40px);font-weight:900;letter-spacing:.04em;color:var(--cyan-brand)}
+.counter .total{opacity:.45;font-size:.62em}
+body.chrome-dark .counter{color:var(--blue-mid)}
+
+/* ====================================================================
+   COMPONENT — NumberCard
+   ==================================================================== */
+.cards{display:grid;gap:clamp(12px,1.4vw,20px)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+
+.ncard{
+  border:1px solid var(--hairline);border-radius:18px;
+  padding:clamp(16px,1.7vw,26px) clamp(16px,1.7vw,24px);
+  background:var(--cyan-08);position:relative;overflow:hidden;
+  transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+}
+.slide--light .ncard{background:#fff;box-shadow:0 8px 30px rgba(10,22,40,.05)}
+.ncard:hover{transform:translateY(-4px);border-color:var(--hairline-2);box-shadow:var(--glow)}
+.ncard__val{font-family:var(--num);font-weight:800;font-size:clamp(26px,3vw,44px);line-height:1;
+  letter-spacing:-.02em;color:var(--white)}
+.slide--light .ncard__val{color:var(--ink)}
+.ncard__val .unit{font-size:.5em;font-weight:700;color:#fff;margin-inline-start:.15em}
+.slide--light .ncard__val .unit{color:var(--blue-mid)}
+.ncard__val.neg{color:#d05a5a}
+.ncard__label{margin-top:10px;font-size:clamp(13px,1.05vw,16px);font-weight:600;color:var(--muted)}
+.slide--light .ncard__label{color:var(--ink-soft)}
+.ncard__delta{position:absolute;top:14px;left:16px;font-family:var(--num);font-size:13px;font-weight:800;
+  padding:4px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:3px}
+.ncard__delta.pos{color:#5BD6A0;background:rgba(91,214,160,.12)}
+.ncard__delta.neg{color:#E07A7A;background:rgba(224,122,122,.12)}
+.ncard.hero{background:linear-gradient(150deg,var(--blue-mid),var(--navy-3));border-color:var(--hairline-2)}
+.ncard.hero .ncard__val,.slide--light .ncard.hero .ncard__val{color:#fff}
+.ncard.hero .ncard__label{color:rgba(255,255,255,.8)}
+.ncard.role{display:flex;align-items:center;justify-content:center;text-align:center;min-height:80px;padding:14px 10px}
+.ncard.role .ncard__val{font-size:clamp(14px,1.45vw,19px);font-weight:800;line-height:1.2}
+.ncard.big{text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:clamp(130px,17vh,180px);padding:clamp(18px,2vw,32px)}
+.ncard.big .ncard__val{font-size:clamp(30px,3.6vw,50px);white-space:nowrap}
+.ncard.big.role .ncard__val{font-size:clamp(15px,1.6vw,21px);white-space:normal;line-height:1.18}
+.ncard.big .ncard__label{font-size:clamp(14px,1.25vw,18px);margin-top:12px}
+.ncard.role.big{min-height:clamp(116px,14.5vh,156px)}
+
+/* ====================================================================
+   COMPONENT — StatStrip
+   ==================================================================== */
+.statstrip{display:flex;flex-wrap:wrap;gap:clamp(20px,4vw,72px);align-items:center;
+  border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);
+  padding:clamp(20px,3vh,34px) 0;margin-top:clamp(22px,4vh,40px)}
+.statstrip .stat{display:flex;flex-direction:column;gap:6px}
+.statstrip .stat b{font-family:var(--num);font-size:clamp(28px,3.6vw,52px);font-weight:900;letter-spacing:-.02em;color:#fff}
+.slide--light .statstrip .stat b{color:var(--blue-mid)}
+.statstrip .stat span{font-size:14px;font-weight:600;color:var(--muted)}
+.slide--light .statstrip .stat span{color:var(--ink-soft)}
+
+/* ====================================================================
+   COMPONENT — Pills / feature lists / blocks
+   ==================================================================== */
+.pill{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:999px;
+  border:1px solid var(--hairline-2);font-size:14px;font-weight:600;background:var(--cyan-08)}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan-brand)}
+
+.feature{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--hairline)}
+.feature:last-child{border-bottom:none}
+.feature .ic{flex:0 0 auto;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;
+  background:var(--cyan-15);color:var(--blue-mid);font-size:20px;font-weight:800}
+.slide--dark .feature .ic,.slide--dark2 .feature .ic{color:#fff}
+.feature .ft{font-size:clamp(15px,1.3vw,19px);font-weight:700;line-height:1.3}
+.feature .fd{font-size:14px;color:var(--muted);margin-top:3px}
+.slide--light .feature .fd{color:var(--ink-soft)}
+
+.block{border:1px solid var(--hairline);border-radius:16px;padding:clamp(16px,1.6vw,24px);background:var(--cyan-08);
+  transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease}
+.slide--light .block{background:#fff;box-shadow:0 8px 30px rgba(10,22,40,.05)}
+.block:hover{transform:translateY(-4px);border-color:var(--hairline-2);box-shadow:var(--glow)}
+.block h4{font-size:clamp(15px,1.2vw,18px);font-weight:800;color:#fff;margin-bottom:8px;
+  display:flex;align-items:center;gap:8px}
+.slide--light .block h4{color:var(--blue-mid)}
+.block p{font-size:clamp(14px,1.15vw,16.5px);line-height:1.55;color:var(--muted)}
+.slide--light .block p{color:var(--ink-soft)}
+/* YouTube link rows inside blocks */
+.yt-links{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.yt-link{display:inline-flex;align-items:center;gap:11px;padding:10px 14px;border-radius:11px;
+  border:1px solid var(--hairline);background:rgba(255,255,255,.04);color:#fff;text-decoration:none;
+  font-size:clamp(13px,1.1vw,15px);font-weight:700;transition:.22s}
+.slide--light .yt-link{color:var(--ink);background:#fff;box-shadow:0 6px 18px rgba(10,22,40,.05)}
+.yt-link:hover{border-color:#ff3333;background:rgba(255,51,51,.10);transform:translateY(-2px)}
+.yt-link .ytlogo{flex:0 0 auto;width:30px;height:auto;fill:#FF0000;filter:drop-shadow(0 0 8px rgba(255,0,0,.35))}
+
+/* ====================================================================
+   COMPONENT — AnimatedTimeline
+   ==================================================================== */
+.timeline{position:relative;margin-top:clamp(28px,5vh,52px);padding:0 6px}
+.timeline__track{position:relative;height:4px;border-radius:4px;background:var(--hairline);overflow:visible}
+.timeline__fill{position:absolute;top:0;right:0;height:100%;border-radius:4px;width:0;
+  background:linear-gradient(90deg,var(--cyan-brand),var(--blue-mid));transition:width 1.4s cubic-bezier(.16,1,.3,1)}
+.timeline__stages{display:flex;justify-content:space-between;margin-top:18px;gap:8px}
+.tstage{flex:1;text-align:center;position:relative;cursor:pointer}
+.tstage .node{width:14px;height:14px;border-radius:50%;background:var(--cyan-brand);border:2px solid var(--cyan-brand);
+  margin:0 auto;transform:translateY(-29px);transition:.4s;
+  animation:nodeGlow 1.7s ease-in-out infinite}
+.slide--light .tstage .node{background:var(--cyan-brand)}
+.tstage:hover .node{transform:translateY(-29px) scale(1.25);animation:none}
+.tstage.done .node{background:var(--cyan-brand);border-color:var(--cyan-brand)}
+.tstage.current .node{transform:translateY(-29px) scale(1.45);box-shadow:0 0 0 5px rgba(91,175,214,.25);animation:none}
+@keyframes nodeGlow{
+  0%,100%{box-shadow:0 0 0 0 rgba(91,175,214,0)}
+  50%{box-shadow:0 0 16px 4px rgba(91,175,214,.8),0 0 0 4px rgba(91,175,214,.18)}
+}
+.tstage .lbl{font-size:clamp(12px,.95vw,14px);font-weight:700;color:var(--ink);line-height:1.3;margin-top:-12px}
+.slide--light .tstage .lbl{color:var(--ink)}
+.tstage.current .lbl{color:var(--blue-mid);font-weight:800}
+.tstage .flag{position:absolute;top:-78px;right:50%;transform:translateX(50%) scale(.6);opacity:0;pointer-events:none;
+  background:var(--cyan-brand);color:var(--navy-deep);font-size:12px;font-weight:800;
+  padding:6px 12px;border-radius:9px;white-space:nowrap;transition:.32s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 24px rgba(91,175,214,.4)}
+.tstage .flag::after{content:"";position:absolute;bottom:-5px;right:50%;transform:translateX(50%) rotate(45deg);
+  width:10px;height:10px;background:var(--cyan-brand)}
+.tstage.current .flag{opacity:1;transform:translateX(50%) scale(1)}
+
+/* ====================================================================
+   COMPONENT — ImageSlot
+   ==================================================================== */
+.imgslot{border:1.5px dashed var(--hairline-2);border-radius:16px;background:var(--cyan-08);
+  display:grid;place-items:center;text-align:center;padding:20px;min-height:130px;color:var(--muted);
+  transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease}
+.slide--light .imgslot{background:#eef5fa}
+.imgslot:hover{transform:translateY(-4px);border-color:var(--cyan-brand);box-shadow:var(--glow)}
+.imgslot .ph{font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--blue-mid)}
+.imgslot .pi{font-size:24px;margin-bottom:6px;opacity:.7}
+.img-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+/* portrait (operator) */
+.portrait{position:relative;border-radius:24px;overflow:hidden;border:1px solid var(--hairline-2);
+  background:var(--navy-3);box-shadow:0 30px 90px rgba(0,0,0,.5);aspect-ratio:4/5;
+  max-height:74vh;margin-inline-start:auto;width:100%;max-width:440px}
+.portrait img{width:100%;height:100%;object-fit:cover;object-position:50% 16%;display:block}
+.portrait::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,transparent 52%,rgba(10,22,40,.78))}
+.portrait__cap{position:absolute;right:20px;bottom:18px;z-index:2;color:#fff;font-weight:800;
+  font-size:clamp(15px,1.4vw,19px);letter-spacing:.01em;text-shadow:0 2px 10px rgba(0,0,0,.5)}
+
+/* ====================================================================
+   COMPONENT — ProcessFlow
+   ==================================================================== */
+.flow{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-top:clamp(20px,3vh,34px)}
+.step{border:1px solid var(--hairline);border-radius:16px;padding:20px;position:relative;background:var(--cyan-08);
+  transition:.3s}
+.slide--light .step{background:#fff;box-shadow:0 8px 30px rgba(10,22,40,.05)}
+.step:hover{transform:translateY(-4px);border-color:var(--hairline-2);box-shadow:var(--glow)}
+.step .n{font-family:var(--num);font-size:13px;font-weight:900;color:var(--navy-deep);background:var(--cyan-brand);
+  width:30px;height:30px;border-radius:9px;display:grid;place-items:center;margin-bottom:14px}
+.step h4{font-size:clamp(15px,1.25vw,18px);font-weight:800;margin-bottom:6px}
+.step p{font-size:13.5px;line-height:1.5;color:var(--muted)}
+.slide--light .step p{color:var(--ink-soft)}
+
+/* ====================================================================
+   COMPONENT — Metro process (slide 10)
+   ==================================================================== */
+.metro{position:relative;margin-top:clamp(30px,4vh,52px);padding:clamp(84px,11vh,118px) clamp(28px,5vw,60px)}
+.metro__line{position:relative;height:8px;border-radius:8px;background:rgba(91,175,214,.18)}
+.metro__line::before{content:"";position:absolute;inset:0;border-radius:8px;
+  background:linear-gradient(90deg,var(--cyan-brand),var(--blue-mid));box-shadow:0 0 18px rgba(91,175,214,.55)}
+.metro__pulse{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:#fff;transform:translate(50%,-50%);
+  box-shadow:0 0 14px 4px rgba(255,255,255,.85);animation:metroTravel 6s linear infinite}
+@keyframes metroTravel{from{right:0}to{right:100%}}
+.metro__stops{position:absolute;inset:0;display:flex;justify-content:space-between}
+.mstop{position:relative;width:0;background:none;border:none;cursor:pointer;font-family:inherit;color:inherit}
+.mstop .dot{position:absolute;top:50%;right:50%;transform:translate(50%,-50%);
+  width:clamp(56px,5.6vw,82px);height:clamp(56px,5.6vw,82px);border-radius:50%;
+  display:grid;place-items:center;font-family:var(--num);font-weight:900;font-size:clamp(24px,2.8vw,40px);color:#fff;
+  background:radial-gradient(circle at 30% 25%,var(--blue-mid),var(--navy-3));
+  border:3px solid var(--cyan-brand);box-shadow:0 0 24px rgba(91,175,214,.5);
+  transition:.3s;animation:nodeGlow 1.9s ease-in-out infinite}
+.mstop:hover .dot{transform:translate(50%,-50%) scale(1.08);animation:none;box-shadow:0 0 40px rgba(91,175,214,.95)}
+.mstop.active .dot{transform:translate(50%,-50%) scale(1.16);animation:none;
+  background:linear-gradient(150deg,var(--cyan-brand),var(--blue-mid));color:var(--navy-deep);
+  box-shadow:0 0 0 7px rgba(91,175,214,.22),0 0 44px rgba(91,175,214,.95)}
+.mstop .lbl{position:absolute;right:50%;transform:translateX(50%);width:clamp(110px,12vw,160px);text-align:center;
+  font-size:clamp(12px,1.05vw,15px);font-weight:700;line-height:1.25;color:var(--muted);transition:.25s;pointer-events:none}
+.mstop:nth-child(odd) .lbl{bottom:calc(50% + clamp(44px,3.8vw,60px))}
+.mstop:nth-child(even) .lbl{top:calc(50% + clamp(44px,3.8vw,60px))}
+.slide--dark .mstop.active .lbl,.slide--dark2 .mstop.active .lbl{color:#fff;font-weight:800}
+.metro__detail{margin-top:clamp(28px,4vh,50px);border:1px solid var(--hairline-2);border-radius:18px;
+  background:var(--cyan-08);padding:clamp(18px,2.2vw,30px);max-width:780px;min-height:96px;transition:.3s}
+.metro__detail .md-n{font-family:var(--num);font-weight:900;color:var(--cyan-brand);font-size:clamp(15px,1.4vw,19px)}
+.metro__detail h4{font-size:clamp(18px,2vw,28px);font-weight:800;margin:4px 0 8px;display:inline-block;margin-inline-start:10px}
+.metro__detail p{font-size:clamp(14px,1.3vw,18px);line-height:1.6;color:var(--muted)}
+@media (max-width:760px){
+  .metro{padding:24px clamp(20px,5vw,40px)}
+  .metro__stops{position:static;flex-direction:column;gap:clamp(20px,4vw,30px);align-items:stretch}
+  .metro__line{height:auto;background:transparent}
+  .metro__line::before,.metro__pulse{display:none}
+  .mstop{width:auto;display:flex;align-items:center;gap:16px}
+  .mstop .dot{position:static;transform:none}
+  .mstop:hover .dot{transform:scale(1.06)}
+  .mstop.active .dot{transform:scale(1.1)}
+  .mstop .lbl{position:static;transform:none;width:auto;text-align:right}
+  .mstop:nth-child(odd) .lbl,.mstop:nth-child(even) .lbl{inset:auto}
+  .metro__detail{margin-top:30px}
+}
+
+/* ====================================================================
+   COMPONENT — Team
+   ==================================================================== */
+.team{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(14px,1.6vw,22px);margin-top:clamp(20px,3vh,34px)}
+.member{border:1px solid var(--hairline);border-radius:18px;padding:22px;text-align:center;background:var(--cyan-08);transition:.3s}
+.member:hover{transform:translateY(-4px);border-color:var(--hairline-2);box-shadow:var(--glow)}
+.member b{display:block;font-size:clamp(16px,1.4vw,20px);font-weight:800}
+.member span{font-size:13.5px;color:var(--muted);font-weight:700;letter-spacing:.02em}
+.slide--light .member span{color:var(--blue-mid)}
+.member .hex{width:clamp(118px,11vw,158px);aspect-ratio:3/4;margin:0 auto 16px;padding:3px;
+  border-radius:16px;
+  background:linear-gradient(150deg,var(--cyan-brand),var(--blue-mid) 45%,var(--navy-3));
+  box-shadow:0 12px 26px rgba(0,0,0,.38)}
+.member .hex img{width:100%;height:100%;object-fit:cover;object-position:center top;display:block;
+  border-radius:13px}
+
+/* ====================================================================
+   COMPONENT — channels / CTA
+   ==================================================================== */
+.cta-btn{display:inline-flex;align-items:center;gap:12px;padding:18px 38px;border-radius:999px;
+  background:var(--cyan-brand);color:var(--navy-deep);font-size:clamp(17px,1.6vw,22px);font-weight:800;
+  box-shadow:0 14px 40px rgba(91,175,214,.35);transition:.25s;margin-top:8px}
+.cta-btn:hover{transform:translateY(-3px);box-shadow:0 18px 50px rgba(91,175,214,.5)}
+.channels{display:flex;flex-wrap:wrap;gap:14px;margin-top:clamp(28px,5vh,48px)}
+.channel{display:flex;align-items:center;gap:11px;padding:14px 22px;border-radius:14px;
+  border:1px solid var(--hairline);background:var(--cyan-08);font-weight:700;font-size:15px;transition:.25s;
+  text-decoration:none;color:var(--white)}
+.channel:hover{border-color:var(--cyan-brand);background:var(--cyan-15);transform:translateY(-2px)}
+.channel .ci{font-size:20px}
+
+/* social brand logos (white + glow) */
+.sociallinks{display:flex;justify-content:center;align-items:center;gap:clamp(24px,3.4vw,44px);
+  margin-top:clamp(28px,5vh,48px)}
+.slogo{display:inline-flex;width:clamp(46px,5vw,62px);height:clamp(46px,5vw,62px);color:#fff;transition:.25s;
+  filter:drop-shadow(0 0 16px rgba(255,255,255,.5))}
+.slogo svg{width:100%;height:100%;fill:currentColor}
+.slogo:hover{transform:translateY(-4px) scale(1.08);color:var(--cyan-brand);
+  filter:drop-shadow(0 0 24px rgba(91,175,214,.95))}
+.slogo--logo{width:auto;height:clamp(56px,6.4vw,78px);filter:drop-shadow(0 0 16px rgba(255,255,255,.5))}
+.slogo--logo img{width:auto;height:100%}
+/* close-slide portrait — rectangle frame like slide 2 */
+.close-photo{height:clamp(200px,34vh,330px);width:auto;aspect-ratio:4/5;border-radius:24px;object-fit:cover;
+  object-position:50% 16%;margin:clamp(54px,9vh,104px) auto 0;border:1px solid var(--hairline-2);
+  box-shadow:0 30px 90px rgba(0,0,0,.5)}
+.slogo--logo:hover{transform:translateY(-4px) scale(1.06);filter:drop-shadow(0 0 26px rgba(91,175,214,.85))}
+
+/* ====================================================================
+   COMPONENT — engines (two products / methods)
+   ==================================================================== */
+.engines{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2vw,28px);margin-top:clamp(22px,3.5vh,40px)}
+.engine{border:1px solid var(--hairline);border-radius:22px;padding:clamp(22px,2.4vw,34px);
+  background:var(--cyan-08);position:relative;overflow:hidden;transition:.3s;text-align:center}
+.engine:hover{border-color:var(--hairline-2);box-shadow:var(--glow);transform:translateY(-4px)}
+.engine .tag-n{font-family:var(--num);font-size:clamp(40px,5vw,68px);font-weight:900;color:var(--hairline-2);
+  line-height:.8;letter-spacing:-.03em}
+.engine .elogo{height:clamp(96px,11vw,150px);width:auto;border-radius:18px;margin:0 auto 18px;display:block;
+  filter:drop-shadow(0 14px 32px rgba(10,22,40,.18))}
+.engine h3{font-size:clamp(20px,2.2vw,30px);font-weight:800;margin:10px 0 8px}
+.engine .etag{font-size:clamp(14px,1.2vw,16px);font-weight:700;color:var(--blue-mid);margin-bottom:10px}
+.engine p{font-size:clamp(14px,1.2vw,16.5px);line-height:1.55;color:var(--muted)}
+.slide--light .engine p{color:var(--ink-soft)}
+.engine .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.engine .chips span{font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px;background:var(--cyan-15);color:var(--blue-mid)}
+.slide--dark .engine .chips span,.slide--dark2 .engine .chips span{color:#fff}
+/* tech cards (slide 08) — logo with blue halo + float on hover, plus feature list */
+.engine.techcard{text-align:center;display:flex;flex-direction:column;align-items:center}
+.engine.techcard .elogo{height:clamp(96px,11vw,150px);width:auto;border-radius:22px;
+  margin:0 auto clamp(10px,1.8vh,18px);
+  filter:drop-shadow(0 0 30px rgba(91,175,214,.55));
+  transition:transform .3s ease, filter .3s ease}
+.engine.techcard:hover .elogo{transform:translateY(-8px) scale(1.05);
+  filter:drop-shadow(0 0 46px rgba(91,175,214,.95))}
+.englist{list-style:none;display:flex;flex-direction:column;gap:clamp(12px,1.8vh,20px);
+  margin-top:clamp(14px,2.4vh,24px);width:100%}
+.englist li{display:flex;align-items:center;justify-content:center;gap:10px;
+  font-size:clamp(14px,1.35vw,18px);font-weight:600;color:var(--ink-soft)}
+.englist li::before{content:"+";color:var(--cyan-brand);font-weight:800;font-size:1.15em;line-height:1}
+.engine.techcard .enghead{font-size:clamp(16px,1.7vw,22px);font-weight:800;color:var(--blue-mid);
+  margin-top:clamp(8px,1.4vh,14px);padding-bottom:clamp(12px,1.8vh,18px);line-height:1.35;max-width:32ch;
+  border-bottom:1px solid var(--hairline);width:100%}
+
+/* matrix */
+.matrix{display:flex;flex-wrap:wrap;justify-content:center;gap:clamp(14px,1.6vw,22px);margin-top:clamp(28px,5vh,52px)}
+.mtile{border:1px solid var(--hairline);border-radius:18px;padding:clamp(22px,2.4vw,34px) clamp(20px,2vw,28px);
+  background:var(--cyan-08);transition:.3s;min-height:clamp(130px,16vh,165px);cursor:pointer;
+  flex:1 1 230px;max-width:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+  animation:tileGlow 2.2s ease-in-out infinite}
+.mtile:hover{transform:translateY(-4px);border-color:var(--cyan-brand);box-shadow:var(--glow);animation:none}
+@keyframes tileGlow{
+  0%,100%{border-color:var(--hairline);box-shadow:0 0 0 0 rgba(91,175,214,0)}
+  50%{border-color:var(--cyan-brand);box-shadow:0 0 26px 2px rgba(91,175,214,.45),0 0 0 3px rgba(91,175,214,.12)}
+}
+.mtile .mi{font-size:22px;margin-bottom:10px}
+.mtile b{font-size:clamp(17px,1.7vw,23px);font-weight:800;line-height:1.3}
+.mtile span{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.35}
+.slide--light .mtile span{color:var(--ink-soft)}
+.mtile .more{font-size:12.5px;font-weight:800;color:var(--cyan-brand);margin-top:12px;letter-spacing:.02em}
+
+/* ====================================================================
+   COMPONENT — Investment Types (tabs → timeline)
+   ==================================================================== */
+.invtabs{display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(10px,1.4vw,18px);margin-top:clamp(20px,3vh,32px)}
+.invtab{border:1px solid var(--hairline);border-radius:18px;padding:clamp(16px,1.8vw,24px);background:var(--cyan-08);
+  text-align:right;transition:.3s;display:flex;flex-direction:column;gap:6px}
+.invtab:hover{border-color:var(--hairline-2);transform:translateY(-3px)}
+.invtab .tag-n{font-family:var(--num);font-size:clamp(26px,3.2vw,42px);font-weight:900;color:var(--hairline-2);line-height:.8}
+.invtab h3{font-size:clamp(17px,1.7vw,23px);font-weight:800;color:var(--ink)}
+.invtab .hint{font-size:12.5px;color:var(--ink-soft);font-weight:600}
+.invtab.active{background:linear-gradient(150deg,var(--blue-mid),var(--navy-3));border-color:var(--cyan-brand);box-shadow:var(--glow)}
+.invtab.active h3{color:#fff}
+.invtab.active .tag-n{color:rgba(255,255,255,.5)}
+.invtab.active .hint{color:rgba(255,255,255,.85)}
+.invpanel{display:none}
+.invpanel.active{display:block;animation:fadeUp .5s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.invpanel .desc{margin-top:clamp(16px,2.4vh,26px);font-size:clamp(15px,1.4vw,19px);line-height:1.55;color:var(--ink-soft);max-width:72ch}
+/* big top room so the "אנחנו כאן" flag clears the paragraph (all 3 types) */
+.invpanel .timeline{margin-top:clamp(82px,11vh,120px)}
+.invpanel .rprocess{margin-top:clamp(60px,8.5vh,96px)}
+
+/* ====================================================================
+   COMPONENT — Field / Map
+   ==================================================================== */
+.maplayout{display:grid;grid-template-columns:1.05fr .95fr;gap:clamp(20px,3vw,44px);align-items:center;margin-top:clamp(20px,3vh,32px)}
+.mapframe{position:relative;border:1px solid var(--hairline-2);border-radius:20px;overflow:hidden;background:var(--cyan-08);
+  min-height:clamp(240px,38vh,360px);display:grid;place-items:center}
+.mapframe img{width:100%;height:100%;max-height:clamp(240px,46vh,440px);object-fit:contain;display:block}
+.mapframe .ph{font-size:14px;font-weight:700;color:var(--cyan-brand);text-align:center;padding:24px}
+.mapframe .pi{font-size:34px;margin-bottom:10px}
+/* full-width map (macro map screenshot from site) */
+.mapframe.wide{display:block;width:100%;min-height:0;background:transparent;border-color:var(--hairline);
+  margin-top:clamp(18px,3vh,30px);max-height:62vh;aspect-ratio:2.04/1}
+.mapframe.wide img{width:100%;height:100%;max-height:62vh;object-fit:contain;max-width:none}
+.mapframe.wide .ph{min-height:clamp(220px,40vh,340px);display:none;align-items:center;justify-content:center;padding:24px}
+/* detailed urban-renewal process timeline */
+.rprocess{position:relative;display:grid;grid-template-columns:repeat(6,1fr);margin-top:clamp(18px,3vh,30px)}
+.rtrack{position:absolute;top:20px;right:0;left:0;height:4px;border-radius:4px;background:var(--hairline);z-index:0;overflow:visible}
+.rtrack__fill{position:absolute;top:0;right:0;height:100%;width:0;border-radius:4px;
+  background:linear-gradient(90deg,var(--cyan-brand),var(--blue-mid));transition:width 1s cubic-bezier(.16,1,.3,1)}
+.rcol{position:relative;z-index:1;padding:0 clamp(8px,0.9vw,15px);display:flex;flex-direction:column;cursor:pointer}
+.rcol + .rcol{border-inline-start:1px dashed var(--hairline-2)}
+.rhead{height:44px;display:flex;align-items:center;justify-content:center;position:relative}
+/* nodes identical to the presale/land timeline dots — pulsing + clickable */
+.rnode{width:14px;height:14px;border-radius:50%;background:var(--cyan-brand);border:2px solid var(--cyan-brand);
+  transition:.4s;animation:nodeGlow 1.7s ease-in-out infinite}
+.rcol:hover .rnode{transform:scale(1.25);animation:none}
+.rcol.done .rnode{background:var(--cyan-brand);border-color:var(--cyan-brand)}
+.rcol.current .rnode{transform:scale(1.6);background:var(--cyan-brand);border-color:var(--cyan-brand);
+  box-shadow:0 0 0 5px rgba(91,175,214,.25);animation:none}
+.rflag{position:absolute;top:-34px;left:50%;transform:translateX(-50%) scale(.6);opacity:0;pointer-events:none;
+  background:var(--cyan-brand);color:var(--navy-deep);font-size:12px;font-weight:800;padding:6px 12px;border-radius:9px;
+  white-space:nowrap;transition:.32s cubic-bezier(.34,1.56,.64,1);box-shadow:0 8px 24px rgba(91,175,214,.4)}
+.rflag::after{content:"";position:absolute;bottom:-5px;left:50%;transform:translateX(-50%) rotate(45deg);width:10px;height:10px;background:var(--cyan-brand)}
+.rcol.current .rflag{opacity:1;transform:translateX(-50%) scale(1)}
+.rbody{margin-top:16px;display:flex;flex-direction:column;flex:1}
+.rbody ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.rbody li{font-size:clamp(11.5px,1vw,13.5px);line-height:1.32;color:var(--ink-soft);position:relative;padding-right:13px}
+.rbody li::before{content:"";position:absolute;right:0;top:.5em;width:5px;height:5px;border-radius:50%;background:var(--cyan-brand)}
+.rroute{margin-top:auto;padding-top:11px;border-top:1px solid var(--hairline);
+  font-weight:800;font-size:clamp(12px,1.1vw,15px);color:var(--blue-mid);text-align:center}
+@media (max-width:900px){
+  .rprocess{grid-template-columns:repeat(2,1fr);gap:20px}
+  .rtrack{display:none}
+  .rcol + .rcol{border-inline-start:none}
+}
+.citygroup{margin-bottom:18px}
+.citygroup .cg-title{font-size:13px;font-weight:800;letter-spacing:.06em;color:var(--cyan-brand);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.citygroup .cg-title .d{width:9px;height:9px;border-radius:50%;background:var(--cyan-brand)}
+.citygroup.analysis .cg-title .d{background:var(--blue-mid)}
+.chiprow{display:flex;flex-wrap:wrap;gap:8px}
+.citychip{font-size:13px;font-weight:700;padding:7px 14px;border-radius:999px;border:1px solid var(--hairline-2);background:var(--cyan-08)}
+.citychip.strong{background:var(--blue-mid);border-color:var(--blue-mid);color:#fff}
+
+/* ====================================================================
+   COMPONENT — Deal boxes + Modal
+   ==================================================================== */
+.dealgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:clamp(14px,1.8vw,22px);margin-top:clamp(20px,3vh,34px)}
+.dealbox{border:1px solid var(--hairline);border-radius:18px;padding:clamp(18px,2vw,28px);background:#fff;
+  box-shadow:0 8px 30px rgba(10,22,40,.05);cursor:pointer;transition:.3s;text-align:right;display:flex;flex-direction:column;gap:12px}
+.dealbox:hover{transform:translateY(-5px);border-color:var(--cyan-brand);box-shadow:var(--glow)}
+.dealbox .db-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.dealbox .db-type{font-size:12px;font-weight:800;letter-spacing:.04em;padding:6px 13px;border-radius:999px;
+  background:var(--cyan-15);color:var(--blue-mid);white-space:nowrap}
+.dealbox .db-type.presale{background:rgba(91,175,214,.2)}
+.dealbox h3{font-size:clamp(19px,1.9vw,26px);font-weight:800;color:var(--ink)}
+.dealbox .db-dev{font-size:13.5px;color:var(--ink-soft);font-weight:600}
+.dealbox .db-cta{font-size:13.5px;color:var(--blue-mid);font-weight:800;margin-top:4px;display:flex;align-items:center;gap:6px}
+.db-units{align-self:flex-end;display:inline-flex;align-items:center;gap:6px;margin-top:2px;
+  font-size:12.5px;font-weight:700;color:var(--blue-mid);
+  background:var(--cyan-08);border:1px solid var(--hairline-2);padding:5px 13px;border-radius:999px}
+.db-units .num{font-weight:900;font-size:1.2em;color:var(--cyan-brand)}
+
+.modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:clamp(16px,3vw,40px);
+  background:rgba(5,12,24,.78);backdrop-filter:blur(7px)}
+.modal.open{display:flex;animation:fadeUp .3s ease}
+.modal__card{background:linear-gradient(180deg,#fff,#f4f8fb);color:var(--ink);border-radius:24px;
+  max-width:920px;width:100%;max-height:90vh;overflow-y:auto;padding:clamp(24px,3vw,44px);position:relative;
+  box-shadow:0 40px 120px rgba(0,0,0,.5)}
+.modal__card::-webkit-scrollbar{width:8px}
+.modal__card::-webkit-scrollbar-thumb{background:var(--hairline-2);border-radius:8px}
+.modal__close{position:absolute;top:16px;left:16px;width:42px;height:42px;border-radius:50%;background:var(--cyan-08);
+  color:var(--blue-mid);font-size:24px;display:grid;place-items:center;transition:.2s}
+.modal__close:hover{background:var(--cyan-15);transform:rotate(90deg)}
+.modal__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.modal__card .msec{font-weight:800;color:var(--blue-mid);font-size:clamp(14px,1.35vw,18px);
+  margin:clamp(20px,2.8vh,28px) 0 6px;padding-bottom:9px;border-bottom:1px solid var(--hairline)}
+.modal__photos{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:12px}
+.modal__photos .imgbox{min-height:clamp(260px,42vh,420px)}
+.imgbox{position:relative;border:1.5px dashed var(--hairline-2);border-radius:14px;overflow:hidden;
+  background:#eef5fa;min-height:130px;display:grid;place-items:center}
+.imgbox img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* map + floor plan + renders: full width, natural aspect — no white sides, no crop */
+.imgbox.map,.imgbox.plan,.imgbox.render{margin-top:0;display:block;min-height:0;border:1px solid var(--hairline);background:transparent}
+.imgbox.map,.imgbox.plan{margin-top:12px}
+.imgbox.map img,.imgbox.plan img,.imgbox.render img{position:static;inset:auto;width:100%;height:auto;display:block;object-fit:fill}
+.imgbox.map:not(:has(img)),.imgbox.plan:not(:has(img)){min-height:clamp(180px,30vh,300px);display:grid;place-items:center;border:1.5px dashed var(--hairline-2);background:#eef5fa}
+.imgbox.render:not(:has(img)){min-height:clamp(150px,22vh,210px);display:grid;place-items:center;border:1.5px dashed var(--hairline-2);background:#eef5fa}
+.imgbox.map:has(img) .ph,.imgbox.plan:has(img) .ph,.imgbox.render:has(img) .ph{display:none}
+.modal__renders{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px;align-items:stretch}
+/* equal-size renders: uniform box, fill it (no white margins) */
+.imgbox.render{aspect-ratio:16/10}
+.imgbox.render img{width:100%;height:100%;object-fit:cover}
+@media(max-width:600px){.modal__renders{grid-template-columns:1fr}}
+.imgbox .ph{font-size:12px;font-weight:700;color:var(--blue-mid);text-align:center;padding:14px;line-height:1.4}
+@media (max-width:560px){.modal__photos{grid-template-columns:1fr 1fr}}
+/* light-scope inside modal card */
+.modal__card .eyebrow{color:var(--blue-mid)}
+.modal__card .ncard{background:#fff;box-shadow:0 6px 20px rgba(10,22,40,.05);display:flex;flex-direction:column;justify-content:center}
+.modal__card .ncard__label{margin-top:0;margin-bottom:8px}
+.deal-units{margin-top:16px;display:flex;align-items:center;gap:12px;
+  background:linear-gradient(120deg,var(--blue-mid),var(--cyan-brand));color:#fff;
+  font-weight:800;font-size:clamp(16px,1.8vw,23px);padding:14px 22px;border-radius:16px;
+  box-shadow:0 12px 34px rgba(91,175,214,.4);position:relative;overflow:hidden}
+.deal-units::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120px 60px at 88% -10%,rgba(255,255,255,.35),transparent 70%)}
+.deal-units .u-ic{font-size:1.3em;line-height:1}
+.deal-units .u-n{font-size:1.7em;font-weight:900;line-height:1;
+  background:rgba(255,255,255,.18);border-radius:10px;padding:2px 12px}
+.modal__card .ncard__val{color:var(--ink);white-space:nowrap}
+.modal__card .ncard__label{color:var(--ink-soft)}
+.modal__card .ncard.hero{background:linear-gradient(150deg,var(--blue-mid),var(--navy-3))}
+.modal__card .ncard.hero .ncard__val{color:#fff}
+.modal__card .ncard.hero .ncard__label{color:rgba(255,255,255,.82)}
+.modal__card .ncard__val.neg{color:#d05a5a}
+.modal__card .block{background:#fff;box-shadow:0 6px 20px rgba(10,22,40,.05)}
+.modal__card .block h4{color:var(--blue-mid)}
+.modal__card .block p{color:var(--ink-soft)}
+/* extra top room so the "אנחנו כאן" flag clears the heading (all deals) */
+.modal__card .timeline{margin-top:clamp(80px,10vh,104px)}
+.modal__card .rprocess{margin-top:clamp(48px,6.5vh,66px)}
+
+/* ====================================================================
+   COMPONENT — Big boxes (business plans)
+   ==================================================================== */
+.bigboxes{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2vw,28px);margin-top:clamp(22px,3.5vh,40px)}
+.bigbox{border:1px solid var(--hairline);border-radius:22px;min-height:clamp(210px,32vh,300px);
+  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;
+  background:var(--cyan-08);padding:clamp(24px,3vw,40px);transition:.3s;text-decoration:none;color:inherit}
+.bigbox:hover{transform:translateY(-5px);border-color:var(--cyan-brand);box-shadow:var(--glow)}
+.bigbox .bb-ic{font-size:clamp(38px,4.4vw,54px)}
+.bigbox h3{font-size:clamp(20px,2.2vw,30px);font-weight:800}
+.bigbox p{font-size:clamp(14px,1.2vw,16.5px);color:var(--muted);max-width:34ch;line-height:1.5}
+.bigbox .bb-cta{margin-top:6px;font-size:14px;font-weight:800;color:var(--cyan-brand);display:flex;align-items:center;gap:7px}
+
+/* video cards (business-plan analysis videos) */
+.videocard{position:relative;display:block;border-radius:22px;overflow:hidden;text-decoration:none;cursor:pointer;
+  aspect-ratio:16/10;border:1px solid var(--hairline-2);background:linear-gradient(150deg,var(--navy-2),var(--navy-deep));
+  transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease}
+.videocard:hover{transform:translateY(-5px);border-color:var(--cyan-brand);box-shadow:var(--glow)}
+.videocard .vthumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.videocard::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,22,40,.20),rgba(10,22,40,.72))}
+.videocard .vplay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;
+  width:clamp(66px,7vw,96px);height:clamp(66px,7vw,96px);border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,#1c4a86,var(--navy-deep) 75%);border:2px solid var(--cyan-brand);
+  display:grid;place-items:center;box-shadow:0 14px 40px rgba(10,22,40,.6),0 0 0 10px rgba(91,175,214,.12);transition:.3s}
+.videocard:hover .vplay{transform:translate(-50%,-50%) scale(1.08);box-shadow:0 18px 50px rgba(10,22,40,.65),0 0 0 14px rgba(91,175,214,.2)}
+.videocard .vplay::before{content:"";margin-inline-start:7px;border-style:solid;
+  border-width:15px 0 15px 24px;border-color:transparent transparent transparent #fff}
+.videocard .vcap{position:absolute;right:20px;bottom:18px;z-index:3;color:#fff;font-weight:800;
+  font-size:clamp(15px,1.5vw,21px);text-shadow:0 2px 12px rgba(0,0,0,.6)}
+
+/* video modal */
+.vwrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:20px;overflow:hidden}
+.vwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+
+/* plans — Single / Double (classic two columns) */
+.plans2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2.2vw,30px);margin-top:clamp(12px,1.8vh,24px);align-items:stretch}
+.plancol{position:relative;z-index:0;border:1px solid rgba(91,175,214,.40);border-radius:22px;padding:clamp(16px,1.9vw,26px) clamp(18px,2vw,30px);background:#fff;
+  box-shadow:0 10px 40px rgba(10,22,40,.06);display:flex;flex-direction:column}
+.plancol--hero{border:1.5px solid rgba(91,175,214,.45);box-shadow:0 16px 50px rgba(91,175,214,.18)}
+/* a thin blue light that runs gently around each rectangle's outline */
+@property --halo{syntax:'<angle>';inherits:false;initial-value:0deg}
+.plancol::before{content:"";position:absolute;inset:-1.5px;border-radius:23px;padding:1.5px;pointer-events:none;
+  background:conic-gradient(from var(--halo),
+    transparent 0deg, transparent 295deg,
+    rgba(91,175,214,.85) 338deg, #eaf7ff 358deg, rgba(91,175,214,.85) 360deg);
+  -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite:exclude;animation:haloRun 5s linear infinite}
+.plancol--hero::before{animation-delay:-2.5s}
+@keyframes haloRun{to{--halo:360deg}}
+@media (prefers-reduced-motion:reduce){.plancol::before{animation:none}}
+.plancol__flag{align-self:center;background:var(--cyan-brand);color:var(--navy-deep);font-weight:800;
+  font-size:12.5px;padding:5px 13px;border-radius:999px;margin-bottom:8px}
+.plancol__name{font-family:var(--num);font-weight:900;font-size:clamp(24px,2.8vw,38px);letter-spacing:.04em;color:var(--blue-mid)}
+.plancol__sub{font-weight:800;font-size:clamp(14px,1.4vw,18px);color:var(--blue-mid);margin-top:3px}
+.plancol__price{margin-top:10px;font-family:var(--num);font-weight:800;font-size:clamp(17px,1.7vw,23px);color:var(--ink)}
+.plancol__price span{font-size:.62em;font-weight:600;color:var(--ink-soft);margin-inline-start:4px}
+.plancol__hr{height:1px;background:var(--hairline);margin:clamp(10px,1.3vh,15px) 0}
+.planlist{list-style:none;display:flex;flex-direction:column;gap:clamp(8px,1.15vh,12px)}
+.planlist li{display:flex;gap:9px;align-items:flex-start;font-size:clamp(13px,1.12vw,15.5px);color:var(--ink-soft);font-weight:600;line-height:1.4}
+.planlist li::before{content:"\2713";color:var(--cyan-brand);font-weight:900;flex:0 0 auto}
+.plancol__price--flat span{font-size:1em;font-weight:800;color:inherit;margin-inline-start:6px}
+.plancol__price .dp{font-size:.6em;font-weight:600;color:var(--ink-soft);margin-inline-start:9px;white-space:nowrap}
+.plancol__price .dp::before{content:"\00B7";color:var(--blue-mid);font-weight:800;margin-inline-end:8px}
+.plancol__head{text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+.perks{display:flex;flex-direction:column;gap:clamp(11px,1.8vh,20px);margin-top:clamp(4px,1vh,12px)}
+.perk{display:flex;flex-direction:column;align-items:center;text-align:center;gap:7px}
+.perk__dot{width:15px;height:15px;border-radius:50%;background:var(--cyan-brand);
+  box-shadow:0 0 0 6px rgba(91,175,214,.14),0 0 20px 3px rgba(91,175,214,.55);
+  animation:perkPulse 2.6s ease-in-out infinite}
+.perk:nth-child(2) .perk__dot{animation-delay:.4s}
+.perk:nth-child(3) .perk__dot{animation-delay:.8s}
+.perk:nth-child(4) .perk__dot{animation-delay:1.2s}
+@keyframes perkPulse{
+  0%,100%{transform:scale(.78);box-shadow:0 0 0 4px rgba(91,175,214,.12),0 0 12px 1px rgba(91,175,214,.4)}
+  50%{transform:scale(1.15);box-shadow:0 0 0 9px rgba(91,175,214,.06),0 0 24px 4px rgba(91,175,214,.8)}}
+.perk__t{font-size:clamp(15px,1.4vw,19px);font-weight:800;color:var(--ink);line-height:1.2}
+.perk__d{font-size:clamp(12.5px,1.05vw,14.5px);color:var(--ink-soft);margin-top:1px;line-height:1.4;max-width:42ch}
+@media (max-width:900px){.plans2{grid-template-columns:1fr}}
+
+/* ====================================================================
+   ENTRANCE ANIMATION
+   ==================================================================== */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.slide.active .reveal{opacity:1;transform:none}
+.slide.active .reveal:nth-child(2){transition-delay:.06s}
+.reveal.d1{transition-delay:.10s}
+.reveal.d2{transition-delay:.18s}
+.reveal.d3{transition-delay:.26s}
+.reveal.d4{transition-delay:.34s}
+.reveal.d5{transition-delay:.42s}
+.reveal.d6{transition-delay:.50s}
+
+/* cover specifics */
+.cover{align-items:center;text-align:center}
+.cover .logo-xl{height:clamp(120px,18vh,190px);width:auto;margin:0 auto clamp(20px,3vh,34px);
+  filter:drop-shadow(0 20px 60px rgba(91,175,214,.3))}
+.cover .tagline{font-size:clamp(22px,3.4vw,46px);font-weight:300;letter-spacing:.02em;margin-top:18px}
+.cover .tagline b{font-weight:800;color:var(--cyan-brand)}
+.cover .sub{margin-top:22px;font-size:clamp(15px,1.5vw,21px);color:var(--muted);font-weight:400}
+.cover .cover-sub{margin-top:16px;font-size:clamp(18px,2.2vw,30px);color:var(--cyan-brand);font-weight:400;letter-spacing:.01em;line-height:1.3}
+
+/* big section divider */
+.divider{align-items:center;text-align:center}
+.divider .kpi{font-family:var(--num);font-size:clamp(64px,12vw,180px);font-weight:900;line-height:.85;
+  color:#fff;letter-spacing:-.03em}
+.slide--light .divider .kpi{color:var(--blue-mid)}
+
+/* utility */
+.mt{margin-top:clamp(20px,3vh,36px)}
+.mt-s{margin-top:14px}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+.split{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(24px,4vw,64px);align-items:start}
+.maxr{max-width:54ch}
+
+/* ====================================================================
+   RESPONSIVE
+   ==================================================================== */
+@media (max-width:900px){
+  .grid-4{grid-template-columns:repeat(2,1fr)}
+  .grid-3{grid-template-columns:repeat(2,1fr)}
+  .deal-grid,.split,.engines,.dash,.maplayout,.bigboxes,.dealgrid{grid-template-columns:1fr}
+  .matrix{grid-template-columns:repeat(2,1fr)}
+  .team{grid-template-columns:repeat(2,1fr)}
+  .invtabs{grid-template-columns:1fr}
+  .modal__grid{grid-template-columns:repeat(2,1fr)}
+  .timeline__stages .lbl{font-size:10px}
+}
+@media (max-width:560px){
+  .grid-4,.grid-3,.grid-2,.matrix,.team{grid-template-columns:1fr 1fr}
+  .nav-arrows{bottom:18px}
+}
+
+/* reduced motion */
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body class="chrome-light">
+
+<!-- ============ FIXED CHROME ============ -->
+<div class="progress"><div class="progress__bar" id="progressBar"></div></div>
+
+<div class="nav-arrows">
+  <button id="next" aria-label="הבא">‹</button>
+  <button id="prev" aria-label="הקודם">›</button>
+</div>
+<div class="counter"><span id="cur">01</span> <span class="total">/ <span id="tot">00</span></span></div>
+
+<!-- ====================================================================
+     DECK
+     ==================================================================== -->
+<main id="deck">
+
+  <!-- ============ 01 · COVER ============ -->
+  <section class="slide slide--dark cover" data-mode="dark">
+    <div class="slide__inner">
+      <img class="logo-xl reveal" src="assets/logo.png" alt="DUPLE" onerror="this.style.display='none'">
+      <h1 class="title reveal d1">דופל נדל״ן</h1>
+      <p class="cover-sub reveal d3">חברה לאסטרטגיית השקעות, יזמות ופתרונות בנדל״ן</p>
+    </div>
+  </section>
+
+  <!-- ============ 02 · עמית לזר ============ -->
+  <section class="slide slide--dark2" data-mode="dark">
+    <div class="slide__inner split" style="align-items:stretch">
+      <div style="display:flex;flex-direction:column">
+        <h2 class="headline reveal d1">נעים מאוד,</h2>
+        <p class="reveal d2" style="font-size:clamp(18px,2vw,26px);font-weight:700;color:var(--cyan-brand);margin-top:6px">עמית לזר · מייסד ומנכ״ל</p>
+        <div style="margin-top:auto">
+          <div class="cards grid-2 mt reveal d2">
+            <div class="ncard hero big"><div class="ncard__val num" data-count="40000000" data-prefix="מעל " data-suffix=" ₪" style="font-size:clamp(16px,2vw,27px);white-space:normal;line-height:1.12">מעל 40,000,000 ₪</div><div class="ncard__label">ניהול תקציב למשקיעים</div></div>
+            <div class="ncard hero big"><div class="ncard__val num" data-count="5" data-suffix="">5</div><div class="ncard__label">שנות ניסיון</div></div>
+          </div>
+          <div class="cards grid-4 mt-s reveal d3">
+            <div class="ncard role big"><div class="ncard__val">שמאי מקרקעין</div></div>
+            <div class="ncard role big"><div class="ncard__val">כלכלן</div></div>
+            <div class="ncard role big"><div class="ncard__val">יזם</div></div>
+            <div class="ncard role big"><div class="ncard__val">אתלט</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="reveal d4">
+        <div class="portrait">
+          <img src="assets/team/amit.jpeg" alt="עמית לזר — מייסד ומנכ״ל דופל נדל״ן" onerror="this.parentNode.style.display='none'">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 · מבנה החברה ============ -->
+  <section class="slide slide--dark" data-mode="dark" id="org">
+    <div class="slide__inner">
+      <h2 class="headline reveal">מבנה החברה</h2>
+      <div class="team reveal d2">
+        <div class="member"><div class="hex"><img src="assets/team/barak.png" alt="ברק יחזקאל"></div><b>ברק יחזקאל</b><span>COO</span></div>
+        <div class="member"><div class="hex"><img src="assets/team/amit.jpeg" alt="עמית לזר"></div><b>עמית לזר</b><span>Founder &amp; CEO</span></div>
+        <div class="member"><div class="hex"><img src="assets/team/yakir.png" alt="יקיר כהן"></div><b>יקיר כהן</b><span>Partner &amp; Lead Developer</span></div>
+        <div class="member"><div class="hex"><img src="assets/team/roi.png" alt="רואי גרוס"></div><b>רואי גרוס</b><span>CLO</span></div>
+        <div class="member"><div class="hex"><img src="assets/team/tamir.png" alt="תמיר זוילי"></div><b>תמיר זוילי</b><span>CFO</span></div>
+        <div class="member"><div class="hex"><img src="assets/team/yonatan.png" alt="יונתן גולן"></div><b>יונתן גולן</b><span>Partner &amp; Lead Developer</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 · השקעות בנדל״ן ============ -->
+  <section class="slide slide--dark" data-mode="dark">
+    <div class="slide__inner" style="text-align:center">
+      <h2 class="headline reveal d1">המסגרת האסטרטגית להשקעת נדל״ן</h2>
+      <div class="matrix reveal d3">
+        <div class="mtile" data-info="tax"><b>הטבות מס ומימון</b></div>
+        <div class="mtile" data-info="roe"><b>תשואה על ההון העצמי</b></div>
+        <div class="mtile" data-info="portfolio"><b>בניית תיק השקעות בנדל״ן</b></div>
+        <div class="mtile" data-info="macro"><b>מאקרו כלכלה</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 · סוגי השקעות (אינטראקטיבי) ============ -->
+  <section class="slide slide--light" data-mode="light">
+    <div class="slide__inner">
+      <h2 class="headline reveal d1">סוגי השקעות בנדל״ן</h2>
+
+      <div class="invtabs reveal d3">
+        <button class="invtab active" data-target="inv-urban">
+          <span class="tag-n num">01</span>
+          <h3>התחדשות עירונית</h3>
+        </button>
+        <button class="invtab" data-target="inv-presale">
+          <span class="tag-n num">02</span>
+          <h3>פריסייל</h3>
+        </button>
+        <button class="invtab" data-target="inv-land">
+          <span class="tag-n num">03</span>
+          <h3>קרקעות עם ודאות תכנונית</h3>
+        </button>
+      </div>
+
+      <div class="invpanels reveal d4">
+        <div class="invpanel active" id="inv-urban">
+          <p class="desc">רכישת דירה ישנה המיועדת להריסה ובנייה מחדש — דירה חדשה עם מעלית, ממ״ד, חניה ושטח מחיה מורחב. נכנסים בנקודה שבה הוודאות התכנונית כבר עלתה, אך המחיר עוד לא תומחר.</p>
+          <div class="rprocess">
+            <div class="rtrack"><div class="rtrack__fill"></div></div>
+            <div class="rcol">
+              <div class="rhead"><div class="rflag">אנחנו כאן</div><span class="rnode"></span></div>
+              <div class="rbody">
+                <ul><li>פניית יזם</li><li>רוב דרוש 67% (פינוי-בינוי)</li><li>קידום תב״ע + בחירת יזם</li></ul>
+                <div class="rroute">מסלול מיסוי</div>
+              </div>
+            </div>
+            <div class="rcol">
+              <div class="rhead"><div class="rflag">אנחנו כאן</div><span class="rnode"></span></div>
+              <div class="rbody">
+                <ul><li>רשות מקומית / ממשלתית</li><li>קידום תב״ע ואישור</li><li>רוב דרוש 67% (פינוי-בינוי)</li><li>בחירת יזם</li></ul>
+                <div class="rroute">מסלול רשויות</div>
+              </div>
+            </div>
+            <div class="rcol">
+              <div class="rhead"><div class="rflag">אנחנו כאן</div><span class="rnode"></span></div>
+              <div class="rbody">
+                <ul><li>הגשת תב״ע לוועדה</li><li>המלצה על הפקדה</li><li>החלטה על הפקדה להתנגדויות</li><li>אישור ופרסום התב״ע</li></ul>
+              </div>
+            </div>
+            <div class="rcol">
+              <div class="rhead"><div class="rflag">אנחנו כאן</div><span class="rnode"></span></div>
+              <div class="rbody">
+                <ul><li>הכנת הבקשה להיתר בנייה</li><li>הגשת בקשה להיתר בנייה</li><li>דיון בוועדה בבקשה</li><li>קבלת החלטה להיתר בתנאים</li><li>קבלת היתר בנייה</li></ul>
+              </div>
+            </div>
+            <div class="rcol">
+              <div class="rhead"><div class="rflag">אנחנו כאן</div><span class="rnode"></span></div>
+              <div class="rbody">
+                <ul><li>הודעה על פינוי</li><li>פינוי הדיירים</li><li>הריסת הבניין הישן</li><li>תקופת הבנייה</li></ul>
+              </div>
+            </div>
+            <div class="rcol">
+              <div class="rhead"><div class="rflag">אנחנו כאן</div><span class="rnode"></span></div>
+              <div class="rbody">
+                <ul><li>בניין חדש</li></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="invpanel" id="inv-presale">
+          <p class="desc">רכישת נכס &laquo;על הנייר&raquo; בשלבי התכנון המוקדמים, עוד בטרם קבלת היתר הבנייה — כניסה מוקדמת לפני כולם, בתמחור ובתנאי מימון אטרקטיביים מיזמים מובילים.</p>
+          <div class="timeline" data-fill="8" data-entry="0" data-stages="רכישת הנכס בשלב הפריסייל — לפני היתר בנייה ולפני מימון הבנק ליזם · תשלום 7% ותנאים ייחודיים על 20% מהפרויקט|קבלת היתר בנייה ומימון מהבנק ליזם · השלמת סכום ראשוני בהתאם לתנאי המימון|תקופת בנייה|בניין חדש ואכלוס">
+            <div class="timeline__track"><div class="timeline__fill"></div></div>
+            <div class="timeline__stages"></div>
+          </div>
+        </div>
+        <div class="invpanel" id="inv-land">
+          <p class="desc">רכישת קרקעות שנבחנו תכנונית ושמאית ברמת ודאות גבוהה — עתודות קרקע באזורי ביקוש אסטרטגיים עם אישורים תכנוניים מתקדמים. השקעה בשורשים, בנקודת הכניסה הזולה ביותר על הציר.</p>
+          <div class="timeline" data-fill="22" data-entry="1" data-stages="קרקע חקלאית טרם הפשרה|אישור בוועדות התכנון|הכנת תוכנית מפורטת (תב״ע)|תוכנית פיתוח ותשתיות|זמינות לבנייה|ביצוע בנייה ואכלוס">
+            <div class="timeline__track"><div class="timeline__fill"></div></div>
+            <div class="timeline__stages"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 · אסטרטגיה בשטח ============ -->
+  <section class="slide slide--dark2" data-mode="dark">
+    <div class="slide__inner">
+      <h2 class="headline reveal d1">ניתוחים והשקעות של החברה</h2>
+      <div class="mapframe wide reveal d3">
+        <!-- [[IMAGE: assets/map.png — צילום מסך של מפת המאקרו מהאתר (אסטרטגיה בשטח → מאקרו)]] -->
+        <img src="assets/map.png" alt="מפת השליטה במרחב — ערי השקעה וניתוח בכל הארץ" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+        <div class="ph" style="display:none"><div><div class="pi">🗺️</div>שמור את צילום מסך המפה בשם<br><b style="color:var(--cyan-brand)">assets/map.png</b></div></div>
+      </div>
+      <div class="cards grid-2 reveal d5 mt-s">
+        <div class="block">
+          <h4 style="font-size:clamp(20px,2.1vw,30px);justify-content:center">◆ ניתוח ערים · מאקרו</h4>
+          <div class="yt-links">
+            <a class="yt-link" href="https://www.youtube.com/watch?v=xGffBVuLmKE&list=PLfk0uknVYbwY0yaAPQe8o5ASv7LPEI9eq" target="_blank" rel="noopener">
+              <svg class="ytlogo" viewBox="0 0 24 24"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2C0 8.08 0 12 0 12s0 3.92.5 5.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14C24 15.92 24 12 24 12s0-3.92-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
+              <span>ניתוחי ערים · פלייליסט 1</span>
+            </a>
+            <a class="yt-link" href="https://www.youtube.com/watch?v=iSirlhJSwoM&list=PLfk0uknVYbwZOuxkZQe7xcqKgVG58_Zyh" target="_blank" rel="noopener">
+              <svg class="ytlogo" viewBox="0 0 24 24"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2C0 8.08 0 12 0 12s0 3.92.5 5.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14C24 15.92 24 12 24 12s0-3.92-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
+              <span>ניתוחי ערים · פלייליסט 2</span>
+            </a>
+          </div>
+        </div>
+        <div class="block">
+          <h4 style="font-size:clamp(20px,2.1vw,30px);justify-content:center">◆ ניתוח עסקאות · מיקרו</h4>
+          <div class="yt-links">
+            <a class="yt-link" href="https://www.youtube.com/watch?v=SNQLihHWbV4&list=PLfk0uknVYbwaZvQEfZc0Yc69FzbAI6GI6" target="_blank" rel="noopener">
+              <svg class="ytlogo" viewBox="0 0 24 24"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2C0 8.08 0 12 0 12s0 3.92.5 5.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14C24 15.92 24 12 24 12s0-3.92-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
+              <span>ניתוחי עסקאות · פלייליסט</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 07 · עסקאות לדוגמא (אינטראקטיבי) ============ -->
+  <section class="slide slide--light" data-mode="light">
+    <div class="slide__inner">
+      <h2 class="headline reveal d1">רכישת עסקאות</h2>
+      <div class="dealgrid reveal d3">
+        <div class="dealbox" data-deal="yoseftal">
+          <div class="db-top"><h3>בת ים — יוספטל</h3><span class="db-type">פינוי בינוי</span></div>
+          <div class="db-dev">יזם: אבני דרך ורוטשטיין · זמן השקעה <span style="unicode-bidi:isolate;direction:ltr">6–9</span> שנים</div>
+          <div class="db-units">במתחם זה רכשנו <span class="num">2</span> דירות</div>
+          <div class="db-cta">צפייה בנתוני העסקה ‹</div>
+        </div>
+        <div class="dealbox" data-deal="einyahav">
+          <div class="db-top"><h3>חולון — עין יהב</h3><span class="db-type">פינוי בינוי</span></div>
+          <div class="db-dev">יזם: קרסו נדל״ן · זמן השקעה <span style="unicode-bidi:isolate;direction:ltr">4–6</span> שנים</div>
+          <div class="db-cta">צפייה בנתוני העסקה ‹</div>
+        </div>
+        <div class="dealbox" data-deal="metzada">
+          <div class="db-top"><h3>בת ים — מצדה</h3><span class="db-type presale">פריסייל</span></div>
+          <div class="db-dev">יזם: קרדן נדל״ן · זמן השקעה <span style="unicode-bidi:isolate;direction:ltr">5–7</span> שנים</div>
+          <div class="db-units">במתחם זה רכשנו <span class="num">3</span> דירות</div>
+          <div class="db-cta">צפייה בנתוני העסקה ‹</div>
+        </div>
+        <div class="dealbox" data-deal="mitzperina">
+          <div class="db-top"><h3>לוד — מצפה רינה</h3><span class="db-type presale">פריסייל</span></div>
+          <div class="db-dev">יזם: צמח המרמן · זמן השקעה <span style="unicode-bidi:isolate;direction:ltr">4–6</span> שנים</div>
+          <div class="db-cta">צפייה בנתוני העסקה ‹</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 08 · טכנולוגיה בנדל״ן ============ -->
+  <section class="slide slide--light" data-mode="light">
+    <div class="slide__inner">
+      <h2 class="headline reveal d1">טכנולוגיה בנדל״ן</h2>
+      <div class="engines reveal d2">
+        <div class="engine techcard">
+          <img class="elogo" src="assets/logo-hub.png" alt="HUB" onerror="this.style.display='none'">
+          <h3 class="enghead">תיק השקעות בנדל״ן</h3>
+          <ul class="englist">
+            <li>ניתוח תזרים ומאזן אישי</li>
+            <li>קביעת תקרת רכישה מקסימלית</li>
+            <li>פילטור מוצר ומיקום</li>
+            <li>תרגום מטרות לתוצאות בשטח</li>
+          </ul>
+        </div>
+        <div class="engine techcard">
+          <img class="elogo" src="assets/logo-aps.png" alt="APS" onerror="this.style.display='none'">
+          <h3 class="enghead">ניתוח נתונים בעולם השמאות, היזמות והשקעות הנדל״ן.</h3>
+          <ul class="englist">
+            <li>GO / NO GO — ניתוח היתכנות מהיר</li>
+            <li>תצוגה ויזואלית — יכולות GIS</li>
+            <li>ריכוז מערך הבדיקות תחת קורת גג אחת</li>
+            <li>עבודה אופקית וחיסכון בזמן</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 09 · ניתוח תכניות עסקיות ============ -->
+  <section class="slide slide--dark2" data-mode="dark">
+    <div class="slide__inner">
+      <h2 class="headline reveal d1">ניתוח תכניות עסקיות</h2>
+      <div class="bigboxes reveal d3">
+        <a class="videocard" data-vid="1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C" href="https://drive.google.com/file/d/1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C/view?usp=sharing" target="_blank" rel="noopener">
+          <img class="vthumb" src="https://drive.google.com/thumbnail?id=1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C&sz=w1200" alt="סרטון ניתוח עסקה 1" onerror="this.style.display='none'">
+          <span class="vplay"></span>
+          <span class="vcap">ניתוח עסקה 1</span>
+        </a>
+        <a class="videocard" data-vid="1uUos3do5edVInddBQ6KRKT5t04fazd2l" href="https://drive.google.com/file/d/1uUos3do5edVInddBQ6KRKT5t04fazd2l/view?usp=sharing" target="_blank" rel="noopener">
+          <img class="vthumb" src="https://drive.google.com/thumbnail?id=1uUos3do5edVInddBQ6KRKT5t04fazd2l&sz=w1200" alt="סרטון ניתוח עסקה 2" onerror="this.style.display='none'">
+          <span class="vplay"></span>
+          <span class="vcap">ניתוח עסקה 2</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 10 · אופי התהליך ============ -->
+  <section class="slide slide--dark" data-mode="dark">
+    <div class="slide__inner">
+      <h2 class="headline reveal d1">איך התהליך מתבצע</h2>
+      <div class="metro reveal d3">
+        <div class="metro__line"><div class="metro__pulse"></div>
+          <div class="metro__stops" id="metroStops"></div>
+        </div>
+      </div>
+      <div class="metro__detail reveal d4" id="metroDetail"></div>
+    </div>
+  </section>
+
+  <!-- ============ 11 · ליווי אסטרטגי · Single / Double ============ -->
+  <section class="slide slide--light" data-mode="light">
+    <div class="slide__inner">
+      <h2 class="headline reveal d1">ליווי אסטרטגי להשקעות נדל״ן</h2>
+      <div class="plans2 reveal d2">
+        <div class="plancol">
+          <div class="plancol__head">
+            <div class="plancol__name">SINGLE</div>
+            <div class="plancol__sub">ליווי לרכישת נכס אחד</div>
+            <div class="plancol__price plancol__price--flat">30,000 ₪ <span>+ מע״מ</span><span class="dp">30% מקדמה</span></div>
+          </div>
+          <div class="plancol__hr"></div>
+          <div class="perks">
+            <div class="perk">
+              <span class="perk__dot"></span>
+              <div class="perk__t">איתור העסקה</div>
+              <div class="perk__d">מציאת הנכס המדויק שמתאים לאסטרטגיה ולמטרות שלך.</div>
+            </div>
+            <div class="perk">
+              <span class="perk__dot"></span>
+              <div class="perk__t">ללא הגבלת זמן והצגת עסקאות</div>
+              <div class="perk__d">ממשיכים להציג עסקאות עד שתמצא את ההשקעה הנכונה — ללא הגבלת זמן וללא תוספת תשלום.</div>
+            </div>
+            <div class="perk">
+              <span class="perk__dot"></span>
+              <div class="perk__t">ניהול העסקה מקצה לקצה</div>
+              <div class="perk__d">תיאום מלא בין כלל גורמי המקצוע — עו״ד, יועץ מימון, שמאות ושטח, תחת קורת גג אחת.</div>
+            </div>
+            <div class="perk">
+              <span class="perk__dot"></span>
+              <div class="perk__t">המחיר כולל את השכרת הנכס.</div>
+              <div class="perk__d">שוכר שנבדק על־ידינו ומתאים לך — יחד, עד שהעסק מתחיל לעבוד.</div>
+            </div>
+          </div>
+        </div>
+        <div class="plancol plancol--hero">
+          <div class="plancol__head">
+            <div class="plancol__name">DOUBLE</div>
+            <div class="plancol__sub">ליווי לרכישת שני נכסים</div>
+            <div class="plancol__price plancol__price--flat">50,000 ₪ <span>+ מע״מ</span><span class="dp">30% מקדמה</span></div>
+          </div>
+          <div class="plancol__hr"></div>
+          <div class="perks">
+            <div class="perk">
+              <span class="perk__dot"></span>
+              <div class="perk__t">איתור העסקאות</div>
+              <div class="perk__d">מציאת שני הנכסים המדויקים שמתאימים לאסטרטגיה ולמטרות שלך.</div>
+            </div>
+            <div class="perk">
+              <span class="perk__dot"></span>
+              <div class="perk__t">ללא הגבלת זמן והצגת עסקאות</div>
+              <div class="perk__d">ממשיכים להציג עסקאות עד שתמצא את שתי ההשקעות הנכונות — ללא הגבלת זמן וללא תוספת תשלום.</div>
+            </div>
+            <div class="perk">
+              <span class="perk__dot"></span>
+              <div class="perk__t">ניהול העסקאות מקצה לקצה</div>
+              <div class="perk__d">תיאום מלא בין כלל גורמי המקצוע לשתי העסקאות — עו״ד, יועץ מימון, שמאות ושטח, תחת קורת גג אחת.</div>
+            </div>
+            <div class="perk">
+              <span class="perk__dot"></span>
+              <div class="perk__t">המחיר כולל את השכרת הנכסים.</div>
+              <div class="perk__d">שוכרים שנבדקו על־ידינו ומתאימים לך — יחד, עד ששתי ההשקעות מתחילות לעבוד.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 12 · סיום · אסטרטגיה, לא מזל ============ -->
+  <section class="slide slide--dark2 cover" data-mode="dark">
+    <div class="slide__inner">
+      <h2 class="headline reveal d1">אסטרטגיה, <span class="accent">לא מזל.</span></h2>
+      <!-- [[IMAGE: assets/amit.jpg — פורטרט עמית (מעמוד 2)]] -->
+      <img class="close-photo reveal d2" src="assets/amit.jpg" alt="עמית לזר" onerror="this.style.display='none'">
+      <!-- [[LINKS: החלף את ה-href של כל אייקון בכתובת הערוץ האמיתית]] -->
+      <div class="sociallinks reveal d3" style="margin-top:clamp(54px,9vh,104px)">
+        <!-- [[LINK: אינסטגרם]] -->
+        <a class="slogo" href="https://www.instagram.com/amitlazar12/" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41 1.27-.06 1.65-.07 4.85-.07M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.31-1.46.72-2.12 1.38C1.35 2.67.94 3.34.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.31.79.72 1.46 1.38 2.12.66.66 1.33 1.07 2.12 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56.79-.31 1.46-.72 2.12-1.38.66-.66 1.07-1.33 1.38-2.12.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91-.31-.79-.72-1.46-1.38-2.12-.66-.66-1.33-1.07-2.12-1.38-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0z"/><path d="M12 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4z"/><circle cx="18.41" cy="5.59" r="1.44"/></svg>
+        </a>
+        <!-- [[LINK: וואטסאפ · קבוצת משקיעים]] -->
+        <a class="slogo" href="https://chat.whatsapp.com/JIEHtBx5bZN70Z1gSKQRdf" target="_blank" rel="noopener" aria-label="WhatsApp · קבוצת משקיעים">
+          <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.043zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        </a>
+        <!-- לוגו החברה (באמצע) → אתר -->
+        <a class="slogo slogo--logo" href="https://www.duplerealestate.com/" target="_blank" rel="noopener" aria-label="אתר החברה"
+           style="filter:drop-shadow(0 0 20px rgba(91,175,214,.85))">
+          <img src="assets/logo.png" alt="DUPLE" onerror="this.src='assets/logo-white.png'">
+        </a>
+        <!-- [[LINK: ספוטיפיי · מגרש הנדל״ן]] -->
+        <a class="slogo" href="https://open.spotify.com/show/0TqTuVTqhpzXmhJ7E5A2x3" target="_blank" rel="noopener" aria-label="Spotify">
+          <svg viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.52 17.34c-.24.36-.66.48-1.02.24-2.82-1.74-6.36-2.1-10.56-1.14-.42.12-.78-.18-.9-.54-.12-.42.18-.78.54-.9 4.56-1.02 8.52-.6 11.64 1.32.42.18.48.66.3 1.02zm1.44-3.3c-.3.42-.84.6-1.26.3-3.24-1.98-8.16-2.58-11.94-1.38-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14 4.38-1.32 9.78-.66 13.5 1.62.42.18.54.78.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.3c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.72 1.56.54.3.72 1.02.42 1.56-.3.42-1.02.66-1.56.36z"/></svg>
+        </a>
+        <!-- [[LINK: יוטיוב]] -->
+        <a class="slogo" href="https://www.youtube.com/@Lazar.Entrepreneur" target="_blank" rel="noopener" aria-label="YouTube">
+          <svg viewBox="0 0 24 24"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2C0 8.08 0 12 0 12s0 3.92.5 5.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14C24 15.92 24 12 24 12s0-3.92-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============ DEAL MODAL ============ -->
+<div class="modal" id="dealModal">
+  <div class="modal__card">
+    <button class="modal__close" id="dealClose" aria-label="סגירה">×</button>
+    <div id="dealBody"></div>
+  </div>
+</div>
+
+<!-- ============ VIDEO MODAL ============ -->
+<div class="modal" id="videoModal">
+  <div class="modal__card" style="max-width:1040px;padding:14px;background:#06101f">
+    <button class="modal__close" id="videoClose" aria-label="סגירה">×</button>
+    <div class="vwrap"><iframe id="videoFrame" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
+  </div>
+</div>
+
+<script>
+/* ====================================================================
+   DUPLE DECK ENGINE
+   ==================================================================== */
+(function(){
+  const deck   = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const bar    = document.getElementById('progressBar');
+  const curEl  = document.getElementById('cur');
+  const totEl  = document.getElementById('tot');
+  const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let idx = 0;
+  totEl.textContent = String(slides.length).padStart(2,'0');
+
+  /* ---- timeline builder (reusable: slide 5 panels + deal modals) ---- */
+  function buildTimeline(tl){
+    if(!tl || tl._setCurrent) return;
+    const stages = tl.dataset.stages.split('|');
+    const entry  = parseInt(tl.dataset.entry,10)||0;
+    const wrap   = tl.querySelector('.timeline__stages');
+    const fill   = tl.querySelector('.timeline__fill');
+    const N = stages.length;
+    // click any node to mark "אנחנו כאן" live
+    function setCurrent(curr){
+      wrap.querySelectorAll('.tstage').forEach((el,i)=>{
+        el.classList.toggle('done', i<=curr);
+        el.classList.toggle('current', i===curr);
+      });
+      fill.style.width = (N>1 ? (curr/(N-1)*100) : 0)+'%';
+    }
+    stages.forEach((label,i)=>{
+      const el=document.createElement('div');
+      el.className='tstage';
+      el.innerHTML='<div class="flag">אנחנו כאן</div><div class="node"></div><div class="lbl">'+label+'</div>';
+      el.addEventListener('click',()=>setCurrent(i));
+      wrap.appendChild(el);
+    });
+    tl._setCurrent = setCurrent;
+    tl._entry = entry;
+  }
+
+  /* ---- urban-renewal rprocess builder (reusable): same "אנחנו כאן" behavior ---- */
+  function buildRprocess(rp, def){
+    if(!rp || rp._setCurrent) return;
+    const cols = [...rp.querySelectorAll('.rcol')];
+    const fill = rp.querySelector('.rtrack__fill');
+    const N = cols.length;
+    function setCurrent(curr){
+      cols.forEach((c,i)=>{
+        c.classList.toggle('done', i<=curr);
+        c.classList.toggle('current', i===curr);
+      });
+      if(fill) fill.style.width = ((curr+0.5)/N*100)+'%'; // reach the node center
+    }
+    cols.forEach((c,i)=>c.addEventListener('click',()=>setCurrent(i)));
+    rp._setCurrent = setCurrent;
+    setCurrent(typeof def==='number' ? Math.min(def,N-1) : 0); // default marker
+  }
+
+  /* ---- capture pristine track templates for the deal modals (BEFORE building) ---- */
+  const _tplU = document.querySelector('#inv-urban .rprocess');
+  const _tplP = document.querySelector('#inv-presale .timeline');
+  const TRACK_TPL = { urban: _tplU?_tplU.outerHTML:'', presale: _tplP?_tplP.outerHTML:'' };
+
+  /* ---- build all on-page timelines / processes ---- */
+  document.querySelectorAll('.timeline').forEach(buildTimeline);
+  document.querySelectorAll('.rprocess').forEach(rp=>buildRprocess(rp));
+
+  function runTimeline(tl){
+    if(!tl || tl.dataset.run) return; tl.dataset.run='1';
+    setTimeout(()=>{ if(tl._setCurrent) tl._setCurrent(0); tl.classList.add('in'); },300);
+  }
+
+  /* ---- chrome mode (light/dark) per slide ---- */
+  function setChrome(mode){
+    document.body.classList.toggle('chrome-dark', mode==='light');
+    document.body.classList.toggle('chrome-light', mode==='dark');
+  }
+
+  /* ---- count-up ---- */
+  function countUp(el){
+    if(el.dataset.done) return; el.dataset.done='1';
+    const target=parseFloat(el.dataset.count);
+    const suffix=el.dataset.suffix||'';
+    const prefix=el.dataset.prefix||'';
+    if(reduce){ el.textContent=prefix+target.toLocaleString('en-US')+suffix; return; }
+    const dur=1100, t0=performance.now();
+    function tick(now){
+      const p=Math.min(1,(now-t0)/dur);
+      const e=1-Math.pow(1-p,3);
+      el.textContent=prefix+Math.round(target*e).toLocaleString('en-US')+suffix;
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ---- activate slide ---- */
+  function activate(i){
+    const s=slides[i];
+    s.classList.add('active');
+    setChrome(s.dataset.mode);
+    s.querySelectorAll('[data-count]').forEach(countUp);
+    const tl = s.querySelector('.invpanel.active .timeline') || s.querySelector('.timeline');
+    if(tl) runTimeline(tl);
+  }
+
+  /* ---- observer drives active state + counter ---- */
+  const io=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting && e.intersectionRatio>=0.55){
+        idx=slides.indexOf(e.target);
+        activate(idx);
+        curEl.textContent=String(idx+1).padStart(2,'0');
+        bar.style.width=((idx)/(slides.length-1)*100)+'%';
+      }
+    });
+  },{root:deck,threshold:[0.55]});
+  slides.forEach(s=>io.observe(s));
+
+  /* ---- navigation ---- */
+  function go(i){ i=Math.max(0,Math.min(slides.length-1,i)); slides[i].scrollIntoView({behavior:reduce?'auto':'smooth'}); }
+  document.getElementById('next').addEventListener('click',()=>go(idx+1));
+  document.getElementById('prev').addEventListener('click',()=>go(idx-1));
+  window.addEventListener('keydown',e=>{
+    if(document.getElementById('dealModal').classList.contains('open')) return;
+    if(document.getElementById('videoModal').classList.contains('open')) return;
+    if(e.key==='ArrowLeft'||e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(idx+1);}
+    else if(e.key==='ArrowRight'||e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();go(idx-1);}
+    else if(e.key==='Home'){go(0);} else if(e.key==='End'){go(slides.length-1);}
+  });
+
+  /* ---- investment-type tabs ---- */
+  document.querySelectorAll('.invtab').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      const id=btn.dataset.target;
+      document.querySelectorAll('.invtab').forEach(b=>b.classList.toggle('active',b===btn));
+      document.querySelectorAll('.invpanel').forEach(p=>p.classList.toggle('active',p.id===id));
+      runTimeline(document.getElementById(id).querySelector('.timeline'));
+    });
+  });
+
+  /* ====================================================================
+     DEAL MODAL
+     ==================================================================== */
+  const DEALS={
+    yoseftal:{city:'בת ים — יוספטל',type:'התחדשות עירונית · פינוי בינוי',dev:'אבני דרך ורוטשטיין',time:'6–9 שנים',track:'urban',entry:0,nphotos:6,nnew:4,units:2,
+      groups:[
+        {t:'נתונים פיננסיים ופוטנציאל רווח',items:[
+          ['הון עצמי מושקע','500,000 ₪'],['משכורת נטו נדרשת','17,500 ₪'],
+          ['מחיר רכישת דירה ישנה','1,740,000 ₪'],['מחיר דירה חדשה','3,000,000 ₪'],
+          ['פוטנציאל רווח','1,260,000 ₪','hero'],['פער תזרימי חודשי','-2,800 ₪','neg']]},
+        {t:'המקרקעין הנרכש · מצב קיים',items:[
+          ['מס׳ חדרים','2.5 חד׳'],['שטח הדירה','68 מ״ר'],['קומה','קומה 1/5'],['כיווני אוויר','צפון ודרום']]},
+        {t:'המקרקעין · מצב חדש',items:[
+          ['מס׳ חדרים','3 חד׳'],['שטח הדירה','84 מ״ר'],['קומה','שליש אמצעי במגדל'],['תמורות נוספות','מרפסת · מחסן · חניה']]}
+      ]},
+    einyahav:{city:'חולון — עין יהב',type:'התחדשות עירונית · פינוי בינוי',dev:'קרסו נדל״ן',time:'4–6 שנים',track:'urban',entry:3,nphotos:4,nnew:2,
+      groups:[
+        {t:'נתונים פיננסיים ופוטנציאל רווח',items:[
+          ['הון עצמי מושקע','700,000 ₪'],['משכורת נטו נדרשת','16,000 ₪'],
+          ['מחיר רכישת דירה ישנה','1,700,000 ₪'],['מחיר דירה חדשה','2,400,000 ₪'],
+          ['פוטנציאל רווח','700,000 ₪','hero'],['פער תזרימי חודשי','-2,000 ₪','neg']]},
+        {t:'המקרקעין הנרכש · מצב קיים',items:[
+          ['מס׳ חדרים','2.5 חד׳'],['שטח הדירה','50 מ״ר'],['קומה','קומה 4/4'],['כיווני אוויר','דרום ומזרח']]},
+        {t:'המקרקעין · מצב חדש',items:[
+          ['מס׳ חדרים','3 חד׳'],['שטח הדירה','75 מ״ר'],['קומה','מינ׳ 2 קומות מעל'],['תמורות נוספות','מרפסת · מחסן · חניה']]}
+      ]},
+    metzada:{city:'בת ים — מצדה',type:'פריסייל',dev:'קרדן נדל״ן',time:'5–7 שנים',track:'presale',entry:0,units:3,nnew:4,
+      groups:[
+        {t:'נתונים פיננסיים ופוטנציאל רווח',items:[
+          ['הון עצמי מושקע','402,000 ₪'],['תנאי מימון','15% בחתימה · השלמה ל-30%'],['משכורת נטו נדרשת','24,800 ₪'],
+          ['מחיר דירה נרכשת','2,678,000 ₪'],['פוטנציאל רווח','400,000–700,000 ₪','hero'],['פער תזרימי חודשי','-3,500 ₪','neg']]},
+        {t:'המקרקעין הנרכש · מצב קיים',items:[
+          ['מס׳ חדרים','3 חד׳'],['שטח הדירה','82 + 8 מ״ר מרפסת'],['קומה','קומה 10/40'],['כיווני אוויר','מזרח']]}
+      ]},
+    mitzperina:{city:'לוד — מצפה רינה',type:'פריסייל',dev:'צמח המרמן',time:'4–6 שנים',track:'presale',entry:0,nnew:2,
+      groups:[
+        {t:'נתונים פיננסיים ופוטנציאל רווח',items:[
+          ['הון עצמי מושקע','257,100 ₪'],['תנאי מימון','10% בחתימה · השלמה ל-25%'],['משכורת נטו נדרשת','25,300 ₪'],
+          ['מחיר דירה נרכשת','2,571,000 ₪'],['פוטנציאל רווח','350,000–650,000 ₪','hero'],['פער תזרימי חודשי','-2,900 ₪','neg']]},
+        {t:'המקרקעין הנרכש · מצב קיים',items:[
+          ['מס׳ חדרים','5 חד׳'],['שטח הדירה','117.5 + 15.5 מ״ר מרפסת'],['קומה','קומה 6/8'],['כיווני אוויר','דרום-מזרח']]}
+      ]}
+  };
+
+  const modal=document.getElementById('dealModal');
+  const body=document.getElementById('dealBody');
+  // force any number range (e.g. 5–7, 400,000–700,000) to LTR: small on left, large on right
+  const ltrRange=s=>/\d\s*[–\-]\s*\d/.test(s)
+    ? '<span style="unicode-bidi:isolate;direction:ltr;white-space:nowrap">'+s+'</span>' : s;
+  function openDeal(key){
+    const d=DEALS[key]; if(!d) return;
+    let html='<span class="eyebrow" style="margin-bottom:6px">'+d.type+'</span>'+
+      '<h2 class="headline" style="font-size:clamp(24px,3vw,40px)">'+d.city+'</h2>'+
+      '<div class="row" style="margin-top:12px">'+
+      (d.dev?'<span class="deal-badge" style="padding:7px 15px;border-radius:999px;font-size:13px;font-weight:800;background:var(--cyan-15);color:var(--blue-mid);border:1px solid var(--hairline-2)">יזם: '+d.dev+'</span>':'')+
+      '<span class="deal-badge" style="padding:7px 15px;border-radius:999px;font-size:13px;font-weight:800;background:var(--blue-mid);color:#fff">זמן השקעה: '+ltrRange(d.time)+'</span></div>';
+    if(d.units>1) html+='<div class="deal-units"><span class="u-ic">🏢</span> במתחם זה רכשנו <span class="u-n num">'+d.units+'</span> דירות</div>';
+    const card=st=>{
+      const hero=st[2]==='hero'?' hero':'';
+      const neg=st[2]==='neg'?' neg':'';
+      const len=String(st[1]).length;
+      let fs,extra='';
+      if(len>18){ fs='clamp(11.5px,1.2vw,15px)'; extra=';white-space:nowrap'; }
+      else if(len>14){ fs='clamp(14px,1.4vw,19px)'; }
+      else if(len>11){ fs='clamp(15px,1.55vw,21px)'; }
+      else { fs='clamp(17px,1.7vw,24px)'; }
+      return '<div class="ncard'+hero+'"><div class="ncard__label">'+st[0]+'</div><div class="ncard__val num'+neg+'" style="font-size:'+fs+extra+'">'+ltrRange(st[1])+'</div></div>';
+    };
+    // balance cards into ~2 equal rows (e.g. 4 → 2+2, not 3+1)
+    const colsFor=n=> n%3===0 ? 3 : (n===4||n===2) ? 2 : n===1 ? 1 : 3;
+    const grid=items=>{ let h='<div class="modal__grid" style="grid-template-columns:repeat('+colsFor(items.length)+',1fr)">'; items.forEach(st=>{ h+=card(st); }); return h+'</div>'; };
+    if(d.groups){
+      d.groups.forEach(g=>{
+        html+='<h4 class="msec">◆ '+g.t+'</h4>'+grid(g.items);
+      });
+    } else {
+      html+=grid(d.stats);
+      if(d.exit) html+='<div class="block" style="margin-top:16px"><h4>◆ תמורות · מצב יוצא</h4><p>'+d.exit+'</p></div>';
+    }
+    // area map + property photos (drop files into assets/deals/)
+    const base='assets/deals/'+key;
+    const imgbox=(src,ph,cls)=>'<div class="imgbox '+(cls||'')+'"><img src="'+src+'" alt="" onerror="this.remove()"><div class="ph">'+ph+'</div></div>';
+    html+='<h4 class="msec">◆ סביבת הנכס · מפה</h4>'+imgbox(base+'-map.png','מפת סביבה — '+key+'-map.png','map');
+    html+='<h4 class="msec">◆ תשריט הדירה</h4>'+imgbox(base+'-plan.png','תשריט הדירה — '+key+'-plan.png','plan');
+    if(d.track!=='presale'){ // no existing property in pre-sale
+      const np=d.nphotos||3;
+      html+='<h4 class="msec">◆ תמונות הנכס</h4><div class="modal__photos">';
+      for(let i=1;i<=np;i++) html+=imgbox(base+'-'+i+'.jpg','תמונה '+i);
+      html+='</div>';
+    }
+    const nn=d.nnew||3;
+    html+='<h4 class="msec">◆ פרוגרמה תכנונית · המצב החדש</h4><div class="modal__renders">';
+    for(let i=1;i<=nn;i++) html+=imgbox(base+'-new-'+i+'.jpg','הדמיה '+i,'render');
+    html+='</div>';
+    if(d.track && TRACK_TPL[d.track]){
+      html+='<div style="margin-top:clamp(20px,3vh,30px)">'+
+        '<h4 style="color:var(--blue-mid);font-weight:800;font-size:clamp(15px,1.4vw,19px);margin-bottom:8px;display:flex;align-items:center;gap:8px">◆ הכניסה שלנו בעסקה בציר הזמן:</h4>'+
+        TRACK_TPL[d.track]+'</div>';
+    }
+    body.innerHTML=html;
+    modal.classList.add('open');
+    // wire the injected interactive track (same UX as slide 5)
+    const mtl=body.querySelector('.timeline'); if(mtl){ buildTimeline(mtl); runTimeline(mtl); }
+    const mrp=body.querySelector('.rprocess'); if(mrp){ buildRprocess(mrp, d.entry); }
+  }
+  function closeDeal(){ modal.classList.remove('open'); }
+  document.querySelectorAll('.dealbox').forEach(box=>{
+    box.addEventListener('click',()=>openDeal(box.dataset.deal));
+  });
+  document.getElementById('dealClose').addEventListener('click',closeDeal);
+  modal.addEventListener('click',e=>{ if(e.target===modal) closeDeal(); });
+  window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDeal(); });
+
+  /* ---- video cards → inline player modal (slide 09) ---- */
+  const vmodal=document.getElementById('videoModal');
+  const vframe=document.getElementById('videoFrame');
+  function closeVideo(){ vmodal.classList.remove('open'); vframe.src=''; }
+  document.querySelectorAll('.videocard').forEach(v=>{
+    v.addEventListener('click',e=>{
+      e.preventDefault();
+      vframe.src='https://drive.google.com/file/d/'+v.dataset.vid+'/preview';
+      vmodal.classList.add('open');
+    });
+  });
+  document.getElementById('videoClose').addEventListener('click',closeVideo);
+  vmodal.addEventListener('click',e=>{ if(e.target===vmodal) closeVideo(); });
+  window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeVideo(); });
+
+  /* ---- strategy-pillar tiles (slide 04) ---- */
+  const eb='<span class="eyebrow" style="margin-bottom:6px">';
+  const hl='<h2 class="headline" style="font-size:clamp(24px,3vw,40px)">';
+  const blk=(h,p)=>'<div class="block" style="margin-top:12px"><h4>◆ '+h+'</h4><p>'+p+'</p></div>';
+  const INFO={
+    tax: eb+'הטבות מס ומימון</span>'+
+      '<div class="chiprow" style="margin-top:18px;gap:10px">'+
+      '<span class="citychip strong">דירה יחידה</span><span class="citychip strong">דירה חליפית</span>'+
+      '<span class="citychip strong">דירה שנייה</span><span class="citychip strong">קרקעות מופשרות למגורים</span>'+
+      '<span class="citychip strong">קרקעות עם ודאות תכנונית גבוהה</span></div>',
+    roe: eb+'תשואה על ההון העצמי</span>'+
+      blk('הון עצמי מושקע','הון עצמי + הוצאות נלוות + הוצאות השבחה = <b>ההון העצמי המושקע</b>.')+
+      blk('איך מחשבים את הרווח','הרווח יקח בחשבון הוצ׳ נלוות / בשוטף, מיסוי לצד פרמיות סיכון.')+
+      blk('תשואה בגין שכירות','התשואה השוטפת מדמי שכירות אינה בליבת האסטרטגיה ואף מטעה משקיעים רבים — היא נעה בממוצע בין 2%–3% בלבד.'),
+    portfolio: eb+'בניית תיק השקעות בנדל״ן</span>'+
+      blk('לפי מטרת הרכישה','החזקת נדל״ן · הגדלת הון עצמי · עסקה תזרימית · יזמות.')+
+      blk('לפי אסטרטגיית הרכישה','שיטת 1/3 · טרם נישואין — הסכם ממון / הכפלת כוח קנייה · יחיד — דירה יחידה / דירה חליפית.')+
+      blk('הדרך הנכונה לבנות','מסלול א׳: דירה יחידה ← קרקע מופשרת / קרקע ← קרקעות / רכישה בחו״ל.<br>מסלול ב׳: דירה יחידה ← דירה חליפית ← קרקע מופשרת / קרקע / רכישה בחו״ל.'),
+    macro: eb+'מאקרו כלכלה</span>'+
+      blk('ריבית מול אינפלציה','ההשפעה על הצריכה ועל ההשקעות — לאן המשק הולך.')+
+      blk('מלחמות ומשברים','האטה / עליית מחירים — נקודות תורפה לרכישה.')+
+      blk('שוק קונים מול שוק מוכרים','זיהוי מי בעמדת כוח — וניצול נכון של המו״מ.')
+  };
+  document.querySelectorAll('.mtile[data-info]').forEach(t=>{
+    t.addEventListener('click',()=>{ body.innerHTML=INFO[t.dataset.info]; modal.classList.add('open'); });
+  });
+
+  /* init */
+  activate(0); setChrome(slides[0].dataset.mode);
+})();
+
+/* ====================================================================
+   METRO PROCESS (slide 10) — big numbers, click to reveal step detail
+   ==================================================================== */
+(function(){
+  const PROC=[
+    ['אסטרטגיה ופיננסים','אפיון הון, תזרים ומטרות. בונים את מפת הדרכים: מה אפשר, מה רוצים, איפה ומתי לרכוש.'],
+    ['אישור עקרוני','גושפנקא מיועץ המימון — לפני שמתקדמים.'],
+    ['עבודת שטח וטכנולוגיה','APS מריץ את הבדיקות, סרטון ניתוח ראשוני לעסקה, תכנית עסקית וביקור פיזי בנכס.'],
+    ['מו״מ ותכנית יציאה','10 בדיקות הזהב, בניית אסטרטגיית מימוש. ללא הגבלת זמן וללא הגבלת עסקאות.'],
+    ['רכישה, מימון וביטוח','ליווי משפטי, שמאות בנק, נטילת משכנתא ופוליסות ביטוח.'],
+    ['מסירה והשבחה','אומדן שיפוץ, חיבור לאנשי מקצוע, חוזה שכירות, רישום זכויות ומסירת חזקה.'],
+    ['זמינות ויציאה','זמינים לאורך חיי ההשקעה.']
+  ];
+  const stopsWrap=document.getElementById('metroStops');
+  const det=document.getElementById('metroDetail');
+  if(!stopsWrap||!det) return;
+  stopsWrap.innerHTML=PROC.map((s,i)=>
+    '<button class="mstop" type="button" data-i="'+i+'"><span class="dot num">'+(i+1)+'</span><span class="lbl">'+s[0]+'</span></button>').join('');
+  const stops=[...stopsWrap.querySelectorAll('.mstop')];
+  det.style.display='none'; // no step open by default
+  function show(i){
+    stops.forEach((s,k)=>s.classList.toggle('active',k===i));
+    det.innerHTML='<span class="md-n">שלב '+(i+1)+'</span><h4>'+PROC[i][0]+'</h4><p>'+PROC[i][1]+'</p>';
+    det.style.display='block';
+  }
+  stops.forEach((s,i)=>s.addEventListener('click',()=>show(i)));
+})();
+</script>
+</body>
+</html>
