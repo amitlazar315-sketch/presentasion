@@ -868,10 +868,10 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     <div class="slide__inner" style="text-align:center">
       <h2 class="headline reveal d1">המסגרת האסטרטגית להשקעת נדל״ן</h2>
       <div class="matrix reveal d3">
-        <div class="mtile" data-info="tax"><b>הטבות מס ומימון</b></div>
-        <div class="mtile" data-info="roe"><b>תשואה על ההון העצמי</b></div>
         <div class="mtile" data-info="portfolio"><b>בניית תיק השקעות בנדל״ן</b></div>
+        <div class="mtile" data-info="tax"><b>מס, מימון ושווי רכישה</b></div>
         <div class="mtile" data-info="macro"><b>מאקרו כלכלה</b></div>
+        <div class="mtile" data-info="roe"><b>תשואה על ההון העצמי</b></div>
       </div>
     </div>
   </section>
@@ -1497,11 +1497,12 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   const hl='<h2 class="headline" style="font-size:clamp(24px,3vw,40px)">';
   const blk=(h,p)=>'<div class="block" style="margin-top:12px"><h4>◆ '+h+'</h4><p>'+p+'</p></div>';
   const INFO={
-    tax: eb+'הטבות מס ומימון</span>'+
+    tax: eb+'מס, מימון ושווי רכישה</span>'+
       '<div class="chiprow" style="margin-top:18px;gap:10px">'+
       '<span class="citychip strong">דירה יחידה</span><span class="citychip strong">דירה חליפית</span>'+
       '<span class="citychip strong">דירה שנייה</span><span class="citychip strong">קרקעות מופשרות למגורים</span>'+
-      '<span class="citychip strong">קרקעות עם ודאות תכנונית גבוהה</span></div>',
+      '<span class="citychip strong">קרקעות עם ודאות תכנונית גבוהה</span></div>'+
+      blk('שווי הרכישה · מה לרכוש לפני מה','סדר הרכישה הוא החלטה אסטרטגית — לא רק כמה לקנות, אלא <b>מה קודם</b>. רכישת דירה יקרה כבר בהתחלה שורפת את מדרגות המס ואת כושר המימון; כניסה דווקא בדירה זולה / יחידה ראשונה משמרת את הטבות המס, מגדילה את כוח הקנייה לנכס הבא, ופותחת מסלול לדירה חליפית או לקרקע. את סדר השווי בונים יחד לפי ההון, התזרים והמטרה.'),
     roe: eb+'תשואה על ההון העצמי</span>'+
       blk('הון עצמי מושקע','הון עצמי + הוצאות נלוות + הוצאות השבחה = <b>ההון העצמי המושקע</b>.')+
       blk('איך מחשבים את הרווח','הרווח יקח בחשבון הוצ׳ נלוות / בשוטף, מיסוי לצד פרמיות סיכון.')+
