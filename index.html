@@ -562,24 +562,25 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   background:#fff;box-shadow:0 14px 40px rgba(10,22,40,.07);display:flex;flex-direction:column;transition:.3s}
 .spotmain.is-presale{border-top-color:#d4a24c}
 .spot-head{padding:clamp(14px,1.8vw,22px) clamp(16px,2vw,26px) clamp(8px,1.2vh,12px);
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.spot-head h3{font-size:clamp(20px,2.3vw,31px);font-weight:900;color:var(--ink);line-height:1.05}
+  display:flex;align-items:center;justify-content:center;text-align:center;gap:12px;flex-wrap:wrap}
+.spot-head h3{font-size:clamp(21px,2.5vw,34px);font-weight:900;color:var(--ink);line-height:1.05}
 .s-tag{font-size:12px;font-weight:800;letter-spacing:.03em;padding:5px 13px;border-radius:999px;
   background:var(--cyan-15);color:var(--blue-mid);white-space:nowrap}
 .spotmain.is-presale .s-tag{background:rgba(212,162,76,.16);color:#a9772b}
 .spotimg{width:100%;height:clamp(180px,30vh,300px);object-fit:cover;display:block;background:#dce8f0}
 .spot-foot{padding:clamp(14px,1.8vw,22px) clamp(16px,2vw,26px) clamp(16px,2vw,24px)}
-.spot-profit{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
-.spot-profit b{font-family:var(--num);font-weight:900;font-size:clamp(24px,3vw,40px);color:var(--blue-mid);letter-spacing:-.01em}
-.spotmain.is-presale .spot-profit b{color:#a9772b}
-.spot-profit span{font-size:13px;font-weight:700;color:var(--ink-soft)}
-.spot-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:14px}
-.spot-stats > div{background:#f3f7fb;border-radius:12px;padding:11px 4px}
-.spot-stats b{display:block;font-family:var(--num);font-weight:800;font-size:clamp(14px,1.3vw,18px);color:var(--ink)}
-.spot-stats span{font-size:11px;color:var(--ink-soft);font-weight:600;margin-top:2px;display:block}
-.spot-foot-row{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.spot-dev{font-size:13px;color:var(--ink-soft);font-weight:600}
-.spot-cta{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;color:#fff;
+.spot-profit{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;margin:2px 0 18px}
+.sp-lbl{font-size:clamp(13px,1.35vw,17px);font-weight:700;color:var(--ink-soft)}
+.sp-val{direction:rtl;font-family:var(--num);font-weight:900;font-size:clamp(30px,4.4vw,58px);
+  color:var(--blue-mid);letter-spacing:-.01em;line-height:1.05}
+.spotmain.is-presale .sp-val{color:#a9772b}
+.spot-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:16px}
+.spot-stats > div{background:#f3f7fb;border-radius:12px;padding:13px 5px}
+.spot-stats b{display:block;direction:rtl;font-family:var(--num);font-weight:800;font-size:clamp(17px,1.85vw,24px);color:var(--ink);line-height:1.12}
+.spot-stats span{font-size:clamp(12px,1.15vw,14.5px);color:var(--ink-soft);font-weight:600;margin-top:4px;display:block}
+.spot-foot-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:nowrap}
+.spot-dev{font-size:clamp(12.5px,1.3vw,15px);color:var(--ink-soft);font-weight:600;flex:0 1 auto;min-width:0}
+.spot-cta{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;color:#fff;flex:0 0 auto;
   background:var(--cyan-brand);border-radius:999px;padding:10px 18px;transition:.25s;border:none;cursor:pointer}
 .spot-cta:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(91,175,214,.4)}
 .spotmain.is-presale .spot-cta{background:#c79238}
@@ -1435,7 +1436,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
       '<div class="row" style="margin-top:12px">'+
       (d.dev?'<span class="deal-badge" style="padding:7px 15px;border-radius:999px;font-size:13px;font-weight:800;background:var(--cyan-15);color:var(--blue-mid);border:1px solid var(--hairline-2)">יזם: '+d.dev+'</span>':'')+
       '<span class="deal-badge" style="padding:7px 15px;border-radius:999px;font-size:13px;font-weight:800;background:var(--blue-mid);color:#fff">זמן השקעה: '+ltrRange(d.time)+'</span></div>';
-    if(d.units>1) html+='<div class="deal-units"><span class="u-ic">🏢</span> במתחם זה רכשנו <span class="u-n num">'+d.units+'</span> דירות</div>';
+    if(d.units>1) html+='<div class="deal-units"><svg class="u-ic" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="M3 21h18M6 21V4a1 1 0 0 1 1-1h7a1 1 0 0 1 1 1v17M15 21V10h3a1 1 0 0 1 1 1v10"/><path d="M9 7h2M9 11h2M9 15h2"/></svg> במתחם זה רכשנו <span class="u-n num">'+d.units+'</span> דירות</div>';
     const card=st=>{
       const hero=st[2]==='hero'?' hero':'';
       const neg=st[2]==='neg'?' neg':'';
@@ -1493,12 +1494,14 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   (function(){
     const spotMain=document.getElementById('spotMain'), spotThumbs=document.getElementById('spotThumbs');
     if(!spotMain||!spotThumbs) return;
-    const L=s=>'<span class="ltr">'+s+'</span>';
+    // wrap every number group in <bdi> so it stays atomic and the line flows RTL (whole numbers, large-first in ranges)
+    const R=s=>s.replace(/\d[\d.,]*/g,m=>'<bdi>'+m+'</bdi>');
+    const SHEKEL=' ₪';
     const SPOT=[
-      {key:'yoseftal',city:'בת ים — יוספטל',type:'פינוי בינוי',presale:false,profit:'1.26M ₪',rooms:'2.5→3',sqm:'68→84',equity:'500K ₪',dev:'אבני דרך ורוטשטיין',time:'6–9',units:2},
-      {key:'einyahav',city:'חולון — עין יהב',type:'פינוי בינוי',presale:false,profit:'600–700K ₪',rooms:'2.5→3',sqm:'50→75',equity:'700K ₪',dev:'קרסו נדל״ן',time:'4–6',units:null},
-      {key:'metzada',city:'בת ים — מצדה',type:'פריסייל',presale:true,profit:'440–700K ₪',rooms:'3 + מרפסת',sqm:'82+8',equity:'402K ₪',dev:'קרדן נדל״ן',time:'5–7',units:3},
-      {key:'mitzperina',city:'לוד — מצפה רינה',type:'פריסייל',presale:true,profit:'350–650K ₪',rooms:'5 + מרפסת',sqm:'117+15',equity:'257K ₪',dev:'צמח המרמן',time:'4–6',units:null}
+      {key:'yoseftal',city:'בת ים — יוספטל',type:'פינוי בינוי',presale:false,profit:'1,260,000',rooms:'2.5 ← 3',sqm:'68 ← 84',equity:'500,000',dev:'אבני דרך ורוטשטיין',time:'6–9',units:2},
+      {key:'einyahav',city:'חולון — עין יהב',type:'פינוי בינוי',presale:false,profit:'700,000',rooms:'2.5 ← 3',sqm:'50 ← 75',equity:'700,000',dev:'קרסו נדל״ן',time:'4–6',units:null},
+      {key:'metzada',city:'בת ים — מצדה',type:'פריסייל',presale:true,profit:'700,000 – 400,000',rooms:'3 + מרפסת',sqm:'82 + 8',equity:'402,000',dev:'קרדן נדל״ן',time:'5–7',units:3},
+      {key:'mitzperina',city:'לוד — מצפה רינה',type:'פריסייל',presale:true,profit:'650,000 – 350,000',rooms:'5 + מרפסת',sqm:'117 + 15',equity:'257,000',dev:'צמח המרמן',time:'4–6',units:null}
     ];
     function render(d){
       spotMain.classList.toggle('is-presale',d.presale);
@@ -1506,14 +1509,14 @@ body.chrome-dark .counter{color:var(--blue-mid)}
         '<div class="spot-head"><span class="s-tag">'+d.type+'</span><h3>'+d.city+'</h3></div>'+
         '<img class="spotimg" src="assets/deals/'+d.key+'-new-1.jpg" alt="" onerror="this.style.visibility=\'hidden\'">'+
         '<div class="spot-foot">'+
-          '<div class="spot-profit"><b>'+L(d.profit)+'</b><span>פוטנציאל רווח</span></div>'+
+          '<div class="spot-profit"><span class="sp-lbl">פוטנציאל רווח</span><span class="sp-val">'+R(d.profit)+SHEKEL+'</span></div>'+
           '<div class="spot-stats">'+
-            '<div><b>'+L(d.rooms)+'</b><span>חדרים</span></div>'+
-            '<div><b>'+L(d.sqm)+'</b><span>מ״ר</span></div>'+
-            '<div><b>'+L(d.equity)+'</b><span>הון עצמי</span></div>'+
+            '<div><b>'+R(d.rooms)+'</b><span>חדרים</span></div>'+
+            '<div><b>'+R(d.sqm)+'</b><span>מ״ר</span></div>'+
+            '<div><b>'+R(d.equity)+SHEKEL+'</b><span>הון עצמי</span></div>'+
           '</div>'+
           '<div class="spot-foot-row">'+
-            '<span class="spot-dev">'+d.dev+' · '+L(d.time)+' שנים'+(d.units?' · נרכשו '+d.units+' דירות':'')+'</span>'+
+            '<span class="spot-dev">'+d.dev+' · '+R(d.time)+' שנים</span>'+
             '<button class="spot-cta">צפייה בנתוני העסקה המלאים ›</button>'+
           '</div>'+
         '</div>';
