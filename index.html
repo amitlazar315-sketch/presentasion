@@ -840,7 +840,11 @@ body.chrome-dark .counter{color:var(--blue-mid)}
    slide fits a portrait phone screen.
    ==================================================================== */
 @media (max-width:520px){
-  .slide{padding:clamp(44px,8vh,72px) 18px clamp(34px,6vh,52px)}
+  /* let tall slides grow & scroll instead of being clipped/centered off-screen */
+  .slide{padding:clamp(44px,8vh,72px) 18px clamp(34px,6vh,52px);height:auto;justify-content:flex-start;overflow:visible}
+  /* content reveals on scroll are gated on the slide reaching 55% intersection,
+     which a tall phone slide can never hit — so always show them on mobile */
+  .reveal{opacity:1 !important;transform:none !important}
   /* one column for all grids/rows */
   .grid-2,.grid-3,.grid-4,.matrix,.team,.engines,.rprocess,.plans2,
   .dealspot,.split,.invtabs,.deal-grid,.dash,.bigboxes{grid-template-columns:1fr}
@@ -1131,12 +1135,12 @@ body.chrome-dark .counter{color:var(--blue-mid)}
       <h2 class="headline reveal d1">ניתוח תכניות עסקיות</h2>
       <div class="bigboxes reveal d3">
         <a class="videocard" data-vid="1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C" href="https://drive.google.com/file/d/1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C/view?usp=sharing" target="_blank" rel="noopener">
-          <img class="vthumb" src="https://drive.google.com/thumbnail?id=1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C&sz=w1200" alt="סרטון ניתוח עסקה 1" onerror="this.style.display='none'">
+          <img class="vthumb" src="https://lh3.googleusercontent.com/d/1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C=w1200" referrerpolicy="no-referrer" loading="lazy" alt="סרטון ניתוח עסקה 1" onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id=1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C&sz=w1200'">
           <span class="vplay"></span>
           <span class="vcap">ניתוח עסקה 1</span>
         </a>
         <a class="videocard" data-vid="1uUos3do5edVInddBQ6KRKT5t04fazd2l" href="https://drive.google.com/file/d/1uUos3do5edVInddBQ6KRKT5t04fazd2l/view?usp=sharing" target="_blank" rel="noopener">
-          <img class="vthumb" src="https://drive.google.com/thumbnail?id=1uUos3do5edVInddBQ6KRKT5t04fazd2l&sz=w1200" alt="סרטון ניתוח עסקה 2" onerror="this.style.display='none'">
+          <img class="vthumb" src="https://lh3.googleusercontent.com/d/1uUos3do5edVInddBQ6KRKT5t04fazd2l=w1200" referrerpolicy="no-referrer" loading="lazy" alt="סרטון ניתוח עסקה 2" onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id=1uUos3do5edVInddBQ6KRKT5t04fazd2l&sz=w1200'">
           <span class="vplay"></span>
           <span class="vcap">ניתוח עסקה 2</span>
         </a>
@@ -1376,16 +1380,21 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   }
 
   /* ---- observer drives active state + counter ---- */
+  // Activate whichever slide is MOST visible (not a fixed 55% threshold) so that
+  // slides taller than the viewport — common on mobile — still activate, run their
+  // count-ups/timelines, and reveal their content.
+  const _ratios=new Map();
   const io=new IntersectionObserver((entries)=>{
-    entries.forEach(e=>{
-      if(e.isIntersecting && e.intersectionRatio>=0.55){
-        idx=slides.indexOf(e.target);
-        activate(idx);
-        curEl.textContent=String(idx+1).padStart(2,'0');
-        bar.style.width=((idx)/(slides.length-1)*100)+'%';
-      }
-    });
-  },{root:deck,threshold:[0.55]});
+    entries.forEach(e=>_ratios.set(e.target,e.intersectionRatio));
+    let best=null,bestR=0;
+    slides.forEach(s=>{const r=_ratios.get(s)||0; if(r>bestR){bestR=r;best=s;}});
+    if(best && bestR>0.12){
+      idx=slides.indexOf(best);
+      activate(idx);
+      curEl.textContent=String(idx+1).padStart(2,'0');
+      bar.style.width=((idx)/(slides.length-1)*100)+'%';
+    }
+  },{root:deck,threshold:[0,0.12,0.3,0.55,0.8,1]});
   slides.forEach(s=>io.observe(s));
 
   /* ---- navigation ---- */
