@@ -2,7 +2,7 @@
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
 <title>DUPLE · מצגת משקיעים · אסטרטגיה, לא מזל</title>
 
 <!-- ============ FONTS ============ -->
@@ -44,13 +44,17 @@
    RESET
    ==================================================================== */
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%;width:100%;overflow:hidden;overscroll-behavior:none}
 html{scroll-behavior:smooth}
 body{
   font-family:var(--he);
   background:var(--navy-deep);
   color:var(--white);
+  /* pin the page so nothing can be dragged/panned — only #deck scrolls (vertically) */
+  position:fixed;
+  inset:0;
   overflow:hidden;
+  touch-action:none;            /* block free pan / pinch-zoom on the page */
   -webkit-font-smoothing:antialiased;
   text-rendering:optimizeLegibility;
 }
@@ -63,10 +67,15 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
    ==================================================================== */
 #deck{
   height:100vh;
+  width:100%;
+  max-width:100vw;
   overflow-y:scroll;
+  overflow-x:hidden;
   scroll-snap-type:y mandatory;
   scroll-behavior:smooth;
   scrollbar-width:none;
+  touch-action:pan-y;           /* only vertical scrolling — no sideways drift / zoom */
+  overscroll-behavior:contain;  /* don't chain scroll to the parent page */
 }
 #deck::-webkit-scrollbar{display:none}
 
