@@ -878,15 +878,19 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   .cover-sub .cs-break{display:inline} /* mobile: keep the two-line break */
   /* wide rows wrap instead of overflow */
   .statstrip,.channels,.chiprow,.engine .chips{flex-wrap:wrap}
-  /* urban-renewal timeline (slide 6): stack vertically on phones — node beside label */
-  .timeline{padding:0;margin-top:16px}
-  .timeline__track{display:none}
-  .timeline__stages{flex-direction:column;align-items:stretch;gap:14px;margin-top:0}
-  .tstage{flex:none;display:flex;align-items:center;gap:12px;justify-content:flex-start;text-align:right}
-  .tstage .node{transform:none !important;margin:0;flex:none}
-  .tstage.current .node{transform:scale(1.18) !important;box-shadow:0 0 0 5px rgba(91,175,214,.25)}
-  .tstage .lbl{margin:0;font-size:13px;text-align:right;line-height:1.35}
-  .tstage .flag{display:none}
+  /* presale + land use .timeline and were fine — just let the stages wrap */
+  .timeline__stages{flex-wrap:wrap;gap:12px}
+  /* התחדשות עירונית uses .rprocess ONLY — fix just it on mobile: each stage becomes
+     a row (node on the side, its steps beside it) instead of a cramped 6-col grid */
+  .rprocess{grid-template-columns:1fr;gap:0}
+  .rcol{flex-direction:row;align-items:flex-start;gap:12px;padding:14px 0;border-bottom:1px dashed var(--hairline)}
+  .rcol:last-child{border-bottom:none}
+  .rcol + .rcol{border-inline-start:none}
+  .rhead{height:auto;flex:none;justify-content:flex-start;padding-top:3px}
+  .rnode{transform:none !important}
+  .rcol.current .rnode{transform:scale(1.3) !important}
+  .rflag{display:none}
+  .rbody{margin-top:0;flex:1}
   /* chrome */
   .nav-arrows{bottom:16px;left:14px}
   .nav-arrows button{width:42px;height:42px}
