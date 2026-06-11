@@ -505,6 +505,15 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   margin-top:clamp(18px,3vh,30px);max-height:62vh;aspect-ratio:2.04/1}
 .mapframe.wide img{width:100%;height:100%;max-height:62vh;object-fit:contain;max-width:none}
 .mapframe.wide .ph{min-height:clamp(220px,40vh,340px);display:none;align-items:center;justify-content:center;padding:24px}
+/* click-to-enlarge map (slide 7) */
+.mapframe.wide{cursor:zoom-in}
+.maphint{position:absolute;top:12px;right:12px;z-index:3;display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:999px;background:rgba(10,22,40,.6);border:1px solid var(--hairline-2);
+  color:var(--cyan-brand);font-size:12px;font-weight:700;pointer-events:none}
+.mapmodal{padding:0;background:rgba(5,12,24,.97)}
+.mapmodal.open{align-items:stretch;justify-content:stretch}
+.mapmodal__scroll{flex:1;overflow:auto;touch-action:pan-x pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.mapmodal__scroll img{display:block;width:auto;height:auto;min-width:300%;max-width:none;margin:auto}
 /* detailed urban-renewal process timeline */
 .rprocess{position:relative;display:grid;grid-template-columns:repeat(6,1fr);margin-top:clamp(18px,3vh,30px)}
 .rtrack{position:absolute;top:20px;right:0;left:0;height:4px;border-radius:4px;background:var(--hairline);z-index:0;overflow:visible}
@@ -1094,7 +1103,8 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   <section class="slide slide--dark2" data-mode="dark">
     <div class="slide__inner">
       <h2 class="headline reveal d1">ניתוחים והשקעות של החברה</h2>
-      <div class="mapframe wide reveal d3">
+      <div class="mapframe wide reveal d3" id="macroMap">
+        <span class="maphint">🔍 לחצו להגדלה</span>
         <!-- [[IMAGE: assets/map.png — צילום מסך של מפת המאקרו מהאתר (אסטרטגיה בשטח → מאקרו)]] -->
         <img src="assets/map.png" alt="מפת השליטה במרחב — ערי השקעה וניתוח בכל הארץ" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="ph" style="display:none"><div><div class="pi">🗺️</div>שמור את צילום מסך המפה בשם<br><b style="color:var(--cyan-brand)">assets/map.png</b></div></div>
@@ -1310,6 +1320,14 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   </div>
 </div>
 
+<!-- ============ MAP MODAL (enlarged, pannable) ============ -->
+<div class="modal mapmodal" id="mapModal">
+  <button class="modal__close" id="mapClose" aria-label="סגירה" style="z-index:10">×</button>
+  <div class="mapmodal__scroll" id="mapScroll">
+    <img src="assets/map.png" alt="מפת ההשקעות — תצוגה מוגדלת" onerror="this.style.opacity='.3'">
+  </div>
+</div>
+
 <script>
 /* ====================================================================
    DUPLE DECK ENGINE
@@ -1441,6 +1459,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   window.addEventListener('keydown',e=>{
     if(document.getElementById('dealModal').classList.contains('open')) return;
     if(document.getElementById('videoModal').classList.contains('open')) return;
+    if(document.getElementById('mapModal').classList.contains('open')) return;
     if(e.key==='ArrowLeft'||e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(idx+1);}
     else if(e.key==='ArrowRight'||e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();go(idx-1);}
     else if(e.key==='Home'){go(0);} else if(e.key==='End'){go(slides.length-1);}
@@ -1611,6 +1630,17 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   document.getElementById('dealClose').addEventListener('click',closeDeal);
   modal.addEventListener('click',e=>{ if(e.target===modal) closeDeal(); });
   window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDeal(); });
+
+  /* ---- slide 7: tap the macro map to open an enlarged, pannable view ---- */
+  (function(){
+    const map=document.getElementById('macroMap');
+    const mm=document.getElementById('mapModal');
+    if(!map||!mm) return;
+    map.addEventListener('click',()=>mm.classList.add('open'));
+    document.getElementById('mapClose').addEventListener('click',e=>{ e.stopPropagation(); mm.classList.remove('open'); });
+    mm.addEventListener('click',e=>{ if(e.target.tagName!=='IMG') mm.classList.remove('open'); });
+    window.addEventListener('keydown',e=>{ if(e.key==='Escape' && mm.classList.contains('open')) mm.classList.remove('open'); });
+  })();
 
   /* ---- video cards → inline player modal (slide 09) ---- */
   const vmodal=document.getElementById('videoModal');
