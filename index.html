@@ -878,6 +878,14 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   .nav-arrows{bottom:16px;left:14px}
   .nav-arrows button{width:42px;height:42px}
   .counter{bottom:18px;right:14px;font-size:24px}
+  /* slide 3 team — mobile-only order: עמית › ברק › רואי › תמיר › יקיר › יונתן
+     (DOM order is ברק, עמית, יקיר, רואי, תמיר, יונתן) */
+  .team .member:nth-child(1){order:2}  /* ברק */
+  .team .member:nth-child(2){order:1}  /* עמית */
+  .team .member:nth-child(3){order:5}  /* יקיר */
+  .team .member:nth-child(4){order:3}  /* רואי */
+  .team .member:nth-child(5){order:4}  /* תמיר */
+  .team .member:nth-child(6){order:6}  /* יונתן */
 }
 
 /* reduced motion */
