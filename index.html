@@ -78,6 +78,13 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   overscroll-behavior:contain;  /* don't chain scroll to the parent page */
 }
 #deck::-webkit-scrollbar{display:none}
+/* On phones, slides can be taller than the screen. Mandatory snap + snap-stop:always
+   then flings you to the next slide before you can read the current one. Soften to
+   proximity so you can scroll through a whole slide and it only gently snaps near edges. */
+@media (max-width:768px){
+  #deck{scroll-snap-type:y proximity}
+  .slide{scroll-snap-stop:normal}
+}
 
 .slide{
   position:relative;
