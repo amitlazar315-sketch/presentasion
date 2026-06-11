@@ -512,9 +512,9 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   color:var(--cyan-brand);font-size:12px;font-weight:700;pointer-events:none}
 .mapmodal{padding:0;background:rgba(5,12,24,.97)}
 .mapmodal.open{align-items:stretch;justify-content:stretch}
-.mapmodal__scroll{flex:1;overflow:auto;touch-action:pan-x pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex;align-items:center;justify-content:center;padding:16px}
-/* show the WHOLE map, fit to the screen (was 3× — too zoomed to read) */
-.mapmodal__scroll img{display:block;width:auto;height:auto;max-width:100%;max-height:100%;margin:auto}
+.mapmodal__scroll{flex:1;overflow:hidden;touch-action:none;display:flex;align-items:center;justify-content:center;padding:0}
+/* fits the screen at first; JS pinch-zoom (transform) handles zoom & pan */
+.mapmodal__scroll img{display:block;width:auto;height:auto;max-width:100%;max-height:100%;transform-origin:center center;will-change:transform;-webkit-user-drag:none;user-select:none}
 /* detailed urban-renewal process timeline */
 .rprocess{position:relative;display:grid;grid-template-columns:repeat(6,1fr);margin-top:clamp(18px,3vh,30px)}
 .rtrack{position:absolute;top:20px;right:0;left:0;height:4px;border-radius:4px;background:var(--hairline);z-index:0;overflow:visible}
@@ -1105,7 +1105,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     <div class="slide__inner">
       <h2 class="headline reveal d1">ניתוחים והשקעות של החברה</h2>
       <div class="mapframe wide reveal d3" id="macroMap">
-        <span class="maphint">🔍 לחצו להגדלה</span>
+        <span class="maphint">🔍 לחצו · זום עם האצבעות</span>
         <!-- [[IMAGE: assets/map.png — צילום מסך של מפת המאקרו מהאתר (אסטרטגיה בשטח → מאקרו)]] -->
         <img src="assets/map.png" alt="מפת השליטה במרחב — ערי השקעה וניתוח בכל הארץ" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
         <div class="ph" style="display:none"><div><div class="pi">🗺️</div>שמור את צילום מסך המפה בשם<br><b style="color:var(--cyan-brand)">assets/map.png</b></div></div>
@@ -1632,15 +1632,36 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   modal.addEventListener('click',e=>{ if(e.target===modal) closeDeal(); });
   window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDeal(); });
 
-  /* ---- slide 7: tap the macro map to open an enlarged, pannable view ---- */
+  /* ---- slide 7: tap the macro map → pinch-zoom & drag freely (custom, so the
+     rest of the deck stays zoom-locked). Also pinch on desktop via wheel. ---- */
   (function(){
     const map=document.getElementById('macroMap');
     const mm=document.getElementById('mapModal');
-    if(!map||!mm) return;
-    map.addEventListener('click',()=>mm.classList.add('open'));
-    document.getElementById('mapClose').addEventListener('click',e=>{ e.stopPropagation(); mm.classList.remove('open'); });
-    mm.addEventListener('click',e=>{ if(e.target.tagName!=='IMG') mm.classList.remove('open'); });
-    window.addEventListener('keydown',e=>{ if(e.key==='Escape' && mm.classList.contains('open')) mm.classList.remove('open'); });
+    const scroll=document.getElementById('mapScroll');
+    const img=scroll&&scroll.querySelector('img');
+    if(!map||!mm||!img) return;
+    let scale=1,tx=0,ty=0,sd=0,ss=1,sx=0,sy=0,btx=0,bty=0,lastTap=0;
+    const clamp=s=>Math.max(1,Math.min(6,s));
+    function apply(){ img.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')'; }
+    function reset(){ scale=1;tx=0;ty=0;apply(); }
+    function dist(t){ return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY); }
+    function close(){ mm.classList.remove('open'); }
+    map.addEventListener('click',()=>{ reset(); mm.classList.add('open'); });
+    document.getElementById('mapClose').addEventListener('click',e=>{ e.stopPropagation(); close(); });
+    scroll.addEventListener('click',e=>{ if(e.target.tagName!=='IMG') close(); });
+    scroll.addEventListener('touchstart',e=>{
+      if(e.touches.length===2){ sd=dist(e.touches); ss=scale; }
+      else if(e.touches.length===1){ sx=e.touches[0].clientX; sy=e.touches[0].clientY; btx=tx; bty=ty; }
+    },{passive:false});
+    scroll.addEventListener('touchmove',e=>{
+      if(e.touches.length===2){ e.preventDefault(); scale=clamp(ss*dist(e.touches)/sd); apply(); }
+      else if(e.touches.length===1&&scale>1){ e.preventDefault(); tx=btx+(e.touches[0].clientX-sx); ty=bty+(e.touches[0].clientY-sy); apply(); }
+    },{passive:false});
+    scroll.addEventListener('touchend',e=>{
+      if(e.touches.length===0){ const n=Date.now(); if(n-lastTap<300){ if(scale>1){reset();}else{scale=2.5;apply();} } lastTap=n; }
+    });
+    scroll.addEventListener('wheel',e=>{ e.preventDefault(); scale=clamp(scale*(e.deltaY<0?1.12:0.9)); if(scale===1){tx=0;ty=0;} apply(); },{passive:false});
+    window.addEventListener('keydown',e=>{ if(e.key==='Escape' && mm.classList.contains('open')) close(); });
   })();
 
   /* ---- video cards → inline player modal (slide 09) ---- */
