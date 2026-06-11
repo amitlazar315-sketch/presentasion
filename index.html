@@ -878,7 +878,15 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   .cover-sub .cs-break{display:inline} /* mobile: keep the two-line break */
   /* wide rows wrap instead of overflow */
   .statstrip,.channels,.chiprow,.engine .chips{flex-wrap:wrap}
-  .timeline__stages{flex-wrap:wrap;gap:12px}
+  /* urban-renewal timeline (slide 6): stack vertically on phones — node beside label */
+  .timeline{padding:0;margin-top:16px}
+  .timeline__track{display:none}
+  .timeline__stages{flex-direction:column;align-items:stretch;gap:14px;margin-top:0}
+  .tstage{flex:none;display:flex;align-items:center;gap:12px;justify-content:flex-start;text-align:right}
+  .tstage .node{transform:none !important;margin:0;flex:none}
+  .tstage.current .node{transform:scale(1.18) !important;box-shadow:0 0 0 5px rgba(91,175,214,.25)}
+  .tstage .lbl{margin:0;font-size:13px;text-align:right;line-height:1.35}
+  .tstage .flag{display:none}
   /* chrome */
   .nav-arrows{bottom:16px;left:14px}
   .nav-arrows button{width:42px;height:42px}
