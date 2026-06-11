@@ -878,6 +878,8 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   /* typography */
   h1.title{font-size:clamp(34px,10vw,54px)}
   h2.headline{font-size:clamp(25px,7.4vw,40px)}
+  /* slide 7 title: keep on a single line on phones */
+  h2.headline--nowrap{white-space:nowrap;font-size:clamp(15px,5.4vw,40px)}
   h3.sub{font-size:clamp(18px,5.6vw,26px)}
   .lead{font-size:clamp(15px,4.4vw,19px);max-width:none}
   .eyebrow{font-size:12px;letter-spacing:.1em}
@@ -1103,7 +1105,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   <!-- ============ 06 · אסטרטגיה בשטח ============ -->
   <section class="slide slide--dark2" data-mode="dark">
     <div class="slide__inner">
-      <h2 class="headline reveal d1">ניתוחים והשקעות של החברה</h2>
+      <h2 class="headline reveal d1 headline--nowrap">ניתוחים והשקעות של החברה</h2>
       <div class="mapframe wide reveal d3" id="macroMap">
         <span class="maphint">🔍 לחצו · זום עם האצבעות</span>
         <!-- [[IMAGE: assets/map.png — צילום מסך של מפת המאקרו מהאתר (אסטרטגיה בשטח → מאקרו)]] -->
