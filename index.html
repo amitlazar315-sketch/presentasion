@@ -1635,46 +1635,81 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     box.addEventListener('click',()=>openDeal(box.dataset.deal));
   });
 
-  /* ---- slide 8: deal spotlight (featured deal + thumbnails → full modal) ---- */
+  /* ---- slide 8: deal spotlight — live deals from the CRM (public flag), the
+     4 hardcoded deals are the offline/error fallback. Live deals open the CRM's
+     public investor view; fallback deals open the in-presentation modal. ---- */
   (function(){
     const spotMain=document.getElementById('spotMain'), spotThumbs=document.getElementById('spotThumbs');
     if(!spotMain||!spotThumbs) return;
     // wrap every number group in <bdi> so it stays atomic and the line flows RTL (whole numbers, large-first in ranges)
-    const R=s=>s.replace(/\d[\d.,]*/g,m=>'<bdi>'+m+'</bdi>');
+    const R=s=>String(s).replace(/\d[\d.,]*/g,m=>'<bdi>'+m+'</bdi>');
+    const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     const SHEKEL=' ₪';
-    const SPOT=[
-      {key:'yoseftal',city:'בת ים — יוספטל',type:'פינוי בינוי',presale:false,profit:'1,260,000',rooms:'2.5 ← 3',sqm:'68 ← 84',equity:'500,000',dev:'אבני דרך ורוטשטיין',time:'6–9',units:2},
-      {key:'einyahav',city:'חולון — עין יהב',type:'פינוי בינוי',presale:false,profit:'700,000',rooms:'2.5 ← 3',sqm:'50 ← 75',equity:'700,000',dev:'קרסו נדל״ן',time:'4–6',units:null},
-      {key:'metzada',city:'בת ים — מצדה',type:'פריסייל',presale:true,profit:'700,000 – 400,000',rooms:'3 + מרפסת',sqm:'82 + 8',equity:'402,000',dev:'קרדן נדל״ן',time:'5–7',units:3},
-      {key:'mitzperina',city:'לוד — מצפה רינה',type:'פריסייל',presale:true,profit:'650,000 – 350,000',rooms:'5 + מרפסת',sqm:'117 + 15',equity:'257,000',dev:'צמח המרמן',time:'4–6',units:null}
+    const FALLBACK=[
+      {key:'yoseftal',city:'בת ים — יוספטל',type:'פינוי בינוי',presale:false,profit:'1,260,000',rooms:'2.5 ← 3',sqm:'68 ← 84',equity:'500,000',dev:'אבני דרך ורוטשטיין',time:'6–9',img:'assets/deals/yoseftal-new-1.jpg'},
+      {key:'einyahav',city:'חולון — עין יהב',type:'פינוי בינוי',presale:false,profit:'700,000',rooms:'2.5 ← 3',sqm:'50 ← 75',equity:'700,000',dev:'קרסו נדל״ן',time:'4–6',img:'assets/deals/einyahav-new-1.jpg'},
+      {key:'metzada',city:'בת ים — מצדה',type:'פריסייל',presale:true,profit:'700,000 – 400,000',rooms:'3 + מרפסת',sqm:'82 + 8',equity:'402,000',dev:'קרדן נדל״ן',time:'5–7',img:'assets/deals/metzada-new-1.jpg'},
+      {key:'mitzperina',city:'לוד — מצפה רינה',type:'פריסייל',presale:true,profit:'650,000 – 350,000',rooms:'5 + מרפסת',sqm:'117 + 15',equity:'257,000',dev:'צמח המרמן',time:'4–6',img:'assets/deals/mitzperina-new-1.jpg'}
     ];
+    let LIST=FALLBACK;
+    // no cover → 1px transparent gif; the CSS background (#dce8f0) is the placeholder
+    const BLANK='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    const imgTag=(d,cls)=>'<img'+(cls?' class="'+cls+'"':'')+' src="'+(d.img||BLANK)+'" alt="" onerror="this.style.visibility=\'hidden\'">';
     function render(d){
       spotMain.classList.toggle('is-presale',d.presale);
+      const stats=[];
+      if(d.rooms)  stats.push('<div><b>'+R(d.rooms)+'</b><span>חדרים</span></div>');
+      if(d.sqm)    stats.push('<div><b>'+R(d.sqm)+'</b><span>מ״ר</span></div>');
+      if(d.equity) stats.push('<div><b>'+R(d.equity)+SHEKEL+'</b><span>הון עצמי</span></div>');
+      const devline=[esc(d.dev||''), d.time?R(d.time)+' שנים':''].filter(Boolean).join(' · ');
       spotMain.innerHTML=
-        '<div class="spot-head"><span class="s-tag">'+d.type+'</span><h3>'+d.city+'</h3></div>'+
-        '<img class="spotimg" src="assets/deals/'+d.key+'-new-1.jpg" alt="" onerror="this.style.visibility=\'hidden\'">'+
+        '<div class="spot-head"><span class="s-tag">'+esc(d.type)+'</span><h3>'+esc(d.city)+'</h3></div>'+
+        imgTag(d,'spotimg')+
         '<div class="spot-foot">'+
-          '<div class="spot-profit"><span class="sp-lbl">פוטנציאל רווח</span><span class="sp-val">'+R(d.profit)+SHEKEL+'</span></div>'+
-          '<div class="spot-stats">'+
-            '<div><b>'+R(d.rooms)+'</b><span>חדרים</span></div>'+
-            '<div><b>'+R(d.sqm)+'</b><span>מ״ר</span></div>'+
-            '<div><b>'+R(d.equity)+SHEKEL+'</b><span>הון עצמי</span></div>'+
-          '</div>'+
+          (d.profit?'<div class="spot-profit"><span class="sp-lbl">פוטנציאל רווח</span><span class="sp-val">'+R(d.profit)+SHEKEL+'</span></div>':'')+
+          (stats.length?'<div class="spot-stats" style="grid-template-columns:repeat('+stats.length+',1fr)">'+stats.join('')+'</div>':'')+
           '<div class="spot-foot-row">'+
-            '<span class="spot-dev">'+d.dev+' · '+R(d.time)+' שנים</span>'+
+            '<span class="spot-dev">'+devline+'</span>'+
             '<button class="spot-cta">צפייה בנתוני העסקה המלאים ›</button>'+
           '</div>'+
         '</div>';
-      spotMain.querySelector('.spot-cta').addEventListener('click',()=>openDeal(d.key));
+      spotMain.querySelector('.spot-cta').addEventListener('click',()=>{
+        if(d.url) window.open(d.url,'_blank','noopener'); else openDeal(d.key);
+      });
       spotThumbs.querySelectorAll('.dthumb').forEach(t=>{
         const on=t.dataset.key===d.key;
         t.classList.toggle('active',on); t.classList.toggle('is-presale',on&&d.presale);
       });
     }
-    spotThumbs.innerHTML=SPOT.map(d=>
-      '<button class="dthumb" data-key="'+d.key+'"><img src="assets/deals/'+d.key+'-new-1.jpg" alt="" onerror="this.style.visibility=\'hidden\'"><div class="tbx"><b>'+d.city+'</b><span>'+d.type+'</span></div></button>').join('');
-    spotThumbs.querySelectorAll('.dthumb').forEach((t,i)=>t.addEventListener('click',()=>render(SPOT[i])));
-    render(SPOT[0]);
+    function show(list){
+      LIST=list;
+      spotThumbs.innerHTML=LIST.map(d=>
+        '<button class="dthumb" data-key="'+esc(d.key)+'">'+imgTag(d,'')+'<div class="tbx"><b>'+esc(d.city)+'</b><span>'+esc(d.type)+'</span></div></button>').join('');
+      spotThumbs.querySelectorAll('.dthumb').forEach((t,i)=>t.addEventListener('click',()=>render(LIST[i])));
+      render(LIST[0]);
+    }
+    show(FALLBACK);
+    // live deals — CRM public API (business plans flagged is_public)
+    const fmt=n=>Math.round(n).toLocaleString('en-US');
+    fetch('https://crm.duplerealestate.com/api/plans/public')
+      .then(r=>r.ok?r.json():null)
+      .then(j=>{
+        const live=((j&&j.deals)||[]).map(p=>({
+          key:p.id, url:p.investorUrl,
+          city:p.city?(p.city+(p.neighborhood?' — '+p.neighborhood:'')):(p.name||'עסקה'),
+          type:p.typeLabel||'עסקה',
+          presale:p.dealType==='new-from-developer',
+          profit:p.profitPotential?fmt(p.profitPotential):null,
+          rooms:p.rooms?String(p.rooms):null,
+          sqm:p.oldArea?(p.newArea?p.oldArea+' ← '+p.newArea:String(p.oldArea)):null,
+          equity:p.equity?fmt(p.equity):null,
+          dev:p.developer||'',
+          time:p.investmentYears?String(p.investmentYears):null,
+          img:p.cover||null
+        }));
+        if(live.length) show(live);
+      })
+      .catch(()=>{}); // offline / API down → fallback stays
   })();
 
   document.getElementById('dealClose').addEventListener('click',closeDeal);
