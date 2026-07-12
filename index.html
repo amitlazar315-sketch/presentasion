@@ -71,18 +71,20 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   max-width:100vw;
   overflow-y:scroll;
   overflow-x:hidden;
-  scroll-snap-type:y mandatory;
-  /* NOTE: no scroll-behavior:smooth here — CSS smooth + mandatory snap fight each
-     other on wheel scroll (stuck/jittery scrolling). JS scrollIntoView animates. */
+  /* Desktop: NO CSS snap — the JS wheel/keys/buttons drive navigation. Mandatory
+     snap yanked the scroll back to the slide top whenever a slide was taller than
+     the window ("scrolls down then jumps back up"). Touch devices get a gentle
+     proximity snap via the media query below. No scroll-behavior:smooth either —
+     it fights snapping/JS animation. */
+  scroll-snap-type:none;
   scrollbar-width:none;
   touch-action:pan-y;           /* only vertical scrolling — no sideways drift / zoom */
   overscroll-behavior:contain;  /* don't chain scroll to the parent page */
 }
 #deck::-webkit-scrollbar{display:none}
-/* On phones, slides can be taller than the screen. Mandatory snap + snap-stop:always
-   then flings you to the next slide before you can read the current one. Soften to
-   proximity so you can scroll through a whole slide and it only gently snaps near edges. */
-@media (max-width:768px){
+/* Touch devices (phones/tablets): native scroll with a gentle proximity snap —
+   you can scroll through a whole tall slide and it only snaps near the edges. */
+@media (hover:none), (pointer:coarse){
   #deck{scroll-snap-type:y proximity}
   .slide{scroll-snap-stop:normal}
 }
@@ -1494,7 +1496,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
      Free wheel scrolling fights mandatory snap (jitter / snapping back / skipped
      slides). Intercept the wheel and navigate deterministically instead.
      A slide taller than the window still scrolls natively inside itself first. */
-  let wheelPrev=0, wheelLocked=false;
+  let wheelPrev=0, lockUntil=0;
   deck.addEventListener('wheel',e=>{
     const dy=e.deltaMode===1 ? e.deltaY*16 : e.deltaY; // normalize Firefox line-mode
     const s=slides[idx];
@@ -1506,9 +1508,10 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     }
     e.preventDefault();
     const now=performance.now(), gap=now-wheelPrev; wheelPrev=now;
-    if(wheelLocked){ if(gap<140) return; wheelLocked=false; } // swallow trackpad inertia
+    if(now<lockUntil) return;            // transition still animating
+    if(gap<140) return;                  // trackpad inertia tail — same gesture
     if(Math.abs(dy)<6) return;
-    wheelLocked=true;
+    lockUntil=now+500;
     go(idx + (dy>0?1:-1));
   },{passive:false});
 
