@@ -614,7 +614,13 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   background:var(--cyan-brand);border-radius:999px;padding:10px 18px;transition:.25s;border:none;cursor:pointer}
 .spot-cta:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(91,175,214,.4)}
 .spotmain.is-presale .spot-cta{background:#c79238}
-.spotthumbs{display:flex;flex-direction:column;gap:clamp(8px,1.2vh,12px)}
+.spotthumbs{display:flex;flex-direction:column;gap:clamp(8px,1.2vh,12px);
+  max-height:clamp(400px,56vh,620px);overflow-y:auto;padding:2px;scrollbar-width:thin}
+.spotthumbs::-webkit-scrollbar{width:6px}
+.spotthumbs::-webkit-scrollbar-thumb{background:var(--hairline-2);border-radius:6px}
+/* status chips (deals from the CRM) */
+.s-tag.st-ok{background:rgba(91,214,160,.16);color:#1f8a5f}
+.s-tag.st-chk{background:rgba(212,162,76,.14);color:#a9772b}
 .dthumb{display:flex;gap:12px;align-items:center;border:1px solid var(--hairline);border-radius:14px;
   padding:9px 11px;background:#fff;transition:.22s;text-align:right;width:100%;cursor:pointer}
 .dthumb:hover{border-color:var(--cyan-brand);transform:translateY(-2px)}
@@ -1654,7 +1660,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     let LIST=FALLBACK;
     // no cover → 1px transparent gif; the CSS background (#dce8f0) is the placeholder
     const BLANK='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-    const imgTag=(d,cls)=>'<img'+(cls?' class="'+cls+'"':'')+' src="'+(d.img||BLANK)+'" alt="" onerror="this.style.visibility=\'hidden\'">';
+    const imgTag=(d,cls)=>'<img'+(cls?' class="'+cls+'"':'')+' loading="lazy" src="'+(d.img||BLANK)+'" alt="" onerror="this.style.visibility=\'hidden\'">';
     function render(d){
       spotMain.classList.toggle('is-presale',d.presale);
       const stats=[];
@@ -1662,8 +1668,9 @@ body.chrome-dark .counter{color:var(--blue-mid)}
       if(d.sqm)    stats.push('<div><b>'+R(d.sqm)+'</b><span>מ״ר</span></div>');
       if(d.equity) stats.push('<div><b>'+R(d.equity)+SHEKEL+'</b><span>הון עצמי</span></div>');
       const devline=[esc(d.dev||''), d.time?R(d.time)+' שנים':''].filter(Boolean).join(' · ');
+      const statusTag=d.status?'<span class="s-tag '+(d.status==='מאושר'?'st-ok':'st-chk')+'">'+esc(d.status)+'</span>':'';
       spotMain.innerHTML=
-        '<div class="spot-head"><span class="s-tag">'+esc(d.type)+'</span><h3>'+esc(d.city)+'</h3></div>'+
+        '<div class="spot-head"><span class="s-tag">'+esc(d.type)+'</span>'+statusTag+'<h3>'+esc(d.city)+'</h3></div>'+
         imgTag(d,'spotimg')+
         '<div class="spot-foot">'+
           (d.profit?'<div class="spot-profit"><span class="sp-lbl">פוטנציאל רווח</span><span class="sp-val">'+R(d.profit)+SHEKEL+'</span></div>':'')+
@@ -1684,7 +1691,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     function show(list){
       LIST=list;
       spotThumbs.innerHTML=LIST.map(d=>
-        '<button class="dthumb" data-key="'+esc(d.key)+'">'+imgTag(d,'')+'<div class="tbx"><b>'+esc(d.city)+'</b><span>'+esc(d.type)+'</span></div></button>').join('');
+        '<button class="dthumb" data-key="'+esc(d.key)+'">'+imgTag(d,'')+'<div class="tbx"><b>'+esc(d.city)+'</b><span>'+esc(d.type)+(d.status?' · '+esc(d.status):'')+'</span></div></button>').join('');
       spotThumbs.querySelectorAll('.dthumb').forEach((t,i)=>t.addEventListener('click',()=>render(LIST[i])));
       render(LIST[0]);
     }
@@ -1697,7 +1704,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
         const live=((j&&j.deals)||[]).map(p=>({
           key:p.id, url:p.investorUrl,
           city:p.city?(p.city+(p.neighborhood?' — '+p.neighborhood:'')):(p.name||'עסקה'),
-          type:p.typeLabel||'עסקה',
+          type:p.typeLabel||'עסקה', status:p.status||null,
           presale:p.dealType==='new-from-developer',
           profit:p.profitPotential?fmt(p.profitPotential):null,
           rooms:p.rooms?String(p.rooms):null,
