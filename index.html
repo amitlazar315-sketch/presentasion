@@ -585,52 +585,39 @@ body.chrome-dark .counter{color:var(--blue-mid)}
 .db-units .num{font-weight:900;font-size:1.2em;color:var(--cyan-brand)}
 .ltr{unicode-bidi:isolate;direction:ltr;display:inline-block}
 
-/* ---- slide 8: deal spotlight (one featured deal · title above · detail below) ---- */
-.dealspot{display:grid;grid-template-columns:1.6fr 1fr;gap:clamp(16px,2.4vw,32px);
-  margin-top:clamp(16px,2.6vh,30px);align-items:start}
-.spotmain{border:1px solid var(--hairline);border-top:5px solid var(--cyan-brand);border-radius:18px;overflow:hidden;
-  background:#fff;box-shadow:0 14px 40px rgba(10,22,40,.07);display:flex;flex-direction:column;transition:.3s}
-.spotmain.is-presale{border-top-color:#d4a24c}
-.spot-head{padding:clamp(14px,1.8vw,22px) clamp(16px,2vw,26px) clamp(8px,1.2vh,12px);
-  display:flex;align-items:center;justify-content:center;text-align:center;gap:12px;flex-wrap:wrap}
-.spot-head h3{font-size:clamp(21px,2.5vw,34px);font-weight:900;color:var(--ink);line-height:1.05}
-.s-tag{font-size:12px;font-weight:800;letter-spacing:.03em;padding:5px 13px;border-radius:999px;
-  background:var(--cyan-15);color:var(--blue-mid);white-space:nowrap}
-.spotmain.is-presale .s-tag{background:rgba(212,162,76,.16);color:#a9772b}
-.spotimg{width:100%;height:clamp(180px,30vh,300px);object-fit:cover;display:block;background:#dce8f0}
-.spot-foot{padding:clamp(14px,1.8vw,22px) clamp(16px,2vw,26px) clamp(16px,2vw,24px)}
-.spot-profit{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;margin:2px 0 18px}
-.sp-lbl{font-size:clamp(13px,1.35vw,17px);font-weight:700;color:var(--ink-soft)}
-.sp-val{direction:rtl;font-family:var(--num);font-weight:900;font-size:clamp(30px,4.4vw,58px);
-  color:var(--blue-mid);letter-spacing:-.01em;line-height:1.05}
-.spotmain.is-presale .sp-val{color:#a9772b}
-.spot-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center;margin-bottom:16px}
-.spot-stats > div{background:#f3f7fb;border-radius:12px;padding:13px 5px}
-.spot-stats b{display:block;direction:rtl;font-family:var(--num);font-weight:800;font-size:clamp(17px,1.85vw,24px);color:var(--ink);line-height:1.12}
-.spot-stats span{font-size:clamp(12px,1.15vw,14.5px);color:var(--ink-soft);font-weight:600;margin-top:4px;display:block}
-.spot-foot-row{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:nowrap}
-.spot-dev{font-size:clamp(12.5px,1.3vw,15px);color:var(--ink-soft);font-weight:600;flex:0 1 auto;min-width:0}
-.spot-cta{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;font-weight:800;color:#fff;flex:0 0 auto;
-  background:var(--cyan-brand);border-radius:999px;padding:10px 18px;transition:.25s;border:none;cursor:pointer}
-.spot-cta:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(91,175,214,.4)}
-.spotmain.is-presale .spot-cta{background:#c79238}
-.spotthumbs{display:flex;flex-direction:column;gap:clamp(8px,1.2vh,12px);
-  max-height:clamp(400px,56vh,620px);overflow-y:auto;padding:2px;scrollbar-width:thin}
-.spotthumbs::-webkit-scrollbar{width:6px}
-.spotthumbs::-webkit-scrollbar-thumb{background:var(--hairline-2);border-radius:6px}
-/* status chips (deals from the CRM) */
-.s-tag.st-ok{background:rgba(91,214,160,.16);color:#1f8a5f}
-.s-tag.st-chk{background:rgba(212,162,76,.14);color:#a9772b}
-.dthumb{display:flex;gap:12px;align-items:center;border:1px solid var(--hairline);border-radius:14px;
-  padding:9px 11px;background:#fff;transition:.22s;text-align:right;width:100%;cursor:pointer}
-.dthumb:hover{border-color:var(--cyan-brand);transform:translateY(-2px)}
-.dthumb.active{border-color:var(--cyan-brand);background:var(--cyan-08);box-shadow:0 8px 22px rgba(91,175,214,.16)}
-.dthumb.active.is-presale{border-color:#d4a24c;background:rgba(212,162,76,.1)}
-.dthumb img{width:54px;height:54px;border-radius:10px;object-fit:cover;flex:0 0 auto;background:#dce8f0}
-.dthumb .tbx{min-width:0}
-.dthumb .tbx b{display:block;font-size:14px;font-weight:800;color:var(--ink)}
-.dthumb .tbx span{font-size:11.5px;color:var(--ink-soft);font-weight:600}
-@media(max-width:820px){.dealspot{grid-template-columns:1fr}.spotthumbs{flex-direction:row;overflow:auto}}
+/* ---- slide 8: deal cards — same design language as the Hub's "העסקאות שלי"
+   (white rounded card · 16:9 branded banner · status chip · city + profit row) ---- */
+.hubgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:16px;
+  margin-top:clamp(16px,2.6vh,30px);max-height:clamp(420px,62vh,700px);overflow-y:auto;
+  overscroll-behavior:contain;padding:4px 4px 12px;scrollbar-width:thin}
+.hubgrid::-webkit-scrollbar{width:6px}
+.hubgrid::-webkit-scrollbar-thumb{background:var(--hairline-2);border-radius:6px}
+.hubcard{display:flex;flex-direction:column;text-align:right;border-radius:16px;overflow:hidden;
+  background:#fff;border:1px solid #e2e8f0;cursor:pointer;padding:0;
+  transition:box-shadow .3s ease, transform .3s ease}
+.hubcard:hover{box-shadow:0 20px 44px rgba(10,22,40,.14);transform:translateY(-4px)}
+.hb-banner{position:relative;display:block;width:100%;padding-bottom:56.25%;overflow:hidden;
+  background:linear-gradient(135deg,#1e3d5e 0%,#3476a5 100%)}
+.hb-banner .dots{position:absolute;inset:0;
+  background-image:radial-gradient(circle, rgba(255,255,255,.14) 1.5px, transparent 1.5px);background-size:26px 26px}
+.hb-banner img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hb-banner .bicon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;color:rgba(255,255,255,.9)}
+.hb-hover{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0);transition:background .3s}
+.hubcard:hover .hb-hover{background:rgba(0,0,0,.2)}
+.hb-hover > span{opacity:0;transform:scale(.9);transition:.3s;display:inline-flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.95);border-radius:12px;padding:8px 14px;font-size:13px;font-weight:600;color:#374151;
+  box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.hubcard:hover .hb-hover > span{opacity:1;transform:scale(1)}
+.hb-info{display:block;padding:13px 15px 14px}
+.hb-toprow{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
+.hb-title{font-size:14.5px;font-weight:800;color:#1e293b;line-height:1.35;min-width:0}
+.hb-status{flex:0 0 auto;font-size:10px;font-weight:700;border-radius:999px;padding:2px 8px;border:1px solid;margin-top:2px}
+.hb-status.ok{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+.hb-status.chk{background:#fef9c3;color:#854d0e;border-color:#fde68a}
+.hb-bottom{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hb-city{font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hb-profit{font-family:var(--num);font-size:13.5px;font-weight:800;color:#3476a5;white-space:nowrap}
+.hb-profit small{font-family:var(--he);font-size:10.5px;font-weight:600;color:#94a3b8;margin-inline-end:5px}
 
 .modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:clamp(16px,3vw,40px);
   background:rgba(5,12,24,.78);backdrop-filter:blur(7px)}
@@ -897,14 +884,12 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   .reveal{opacity:1 !important;transform:none !important}
   /* one column for all grids/rows */
   .grid-2,.grid-3,.grid-4,.matrix,.team,.engines,.rprocess,.plans2,
-  .dealspot,.split,.invtabs,.deal-grid,.dash,.bigboxes{grid-template-columns:1fr}
-  /* slide 8 additional deals → swipeable card row (image on top, title below) */
-  .spotthumbs{flex-direction:row;overflow-x:auto;overflow-y:hidden;gap:10px;padding:2px 2px 10px;margin-bottom:10px;
-    touch-action:pan-x;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
-  .dthumb{flex:0 0 auto;width:150px;flex-direction:column;align-items:stretch;gap:8px;padding:8px;scroll-snap-align:start}
-  .dthumb img{width:100%;height:80px;border-radius:10px}
-  .dthumb .tbx b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .dthumb .tbx span{font-size:11px}
+  .split,.invtabs,.deal-grid,.dash,.bigboxes{grid-template-columns:1fr}
+  /* slide 8 deal cards — two-up grid, shorter scroll area */
+  .hubgrid{grid-template-columns:1fr 1fr;gap:10px;max-height:58vh}
+  .hb-title{font-size:12.5px}
+  .hb-profit{font-size:12px}
+  .hb-profit small{display:none}
   /* typography */
   h1.title{font-size:clamp(34px,10vw,54px)}
   h2.headline{font-size:clamp(25px,7.4vw,40px)}
@@ -1173,10 +1158,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   <section class="slide slide--light" data-mode="light" id="deals">
     <div class="slide__inner">
       <h2 class="headline reveal d1">רכישת עסקאות</h2>
-      <div class="dealspot reveal d3">
-        <div class="spotmain" id="spotMain"></div>
-        <div class="spotthumbs" id="spotThumbs"></div>
-      </div>
+      <div class="hubgrid reveal d3" id="dealGrid"></div>
     </div>
   </section>
 
@@ -1505,6 +1487,13 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   let wheelPrev=0, lockUntil=0;
   deck.addEventListener('wheel',e=>{
     const dy=e.deltaMode===1 ? e.deltaY*16 : e.deltaY; // normalize Firefox line-mode
+    // wheel over an inner scrollable (e.g. the deals grid) scrolls IT, not the deck
+    for(let el=e.target; el && el!==deck; el=el.parentElement){
+      if(el.scrollHeight-el.clientHeight>4){
+        const o=getComputedStyle(el).overflowY;
+        if((o==='auto'||o==='scroll') && (dy>0 ? el.scrollTop+el.clientHeight<el.scrollHeight-2 : el.scrollTop>2)) return;
+      }
+    }
     const s=slides[idx];
     if(s.offsetHeight - deck.clientHeight > 6){
       const top=s.offsetTop, bot=top+s.offsetHeight;
@@ -1641,77 +1630,57 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     box.addEventListener('click',()=>openDeal(box.dataset.deal));
   });
 
-  /* ---- slide 8: deal spotlight — live deals from the CRM (public flag), the
-     4 hardcoded deals are the offline/error fallback. Live deals open the CRM's
-     public investor view; fallback deals open the in-presentation modal. ---- */
+  /* ---- slide 8: deal cards (Hub design language) — live deals from the CRM,
+     the 4 hardcoded deals are the offline/error fallback. Live cards open the
+     CRM's public investor view; fallback cards open the in-deck modal. ---- */
   (function(){
-    const spotMain=document.getElementById('spotMain'), spotThumbs=document.getElementById('spotThumbs');
-    if(!spotMain||!spotThumbs) return;
-    // wrap every number group in <bdi> so it stays atomic and the line flows RTL (whole numbers, large-first in ranges)
+    const grid=document.getElementById('dealGrid');
+    if(!grid) return;
+    // wrap every number group in <bdi> so it stays atomic and the line flows RTL
     const R=s=>String(s).replace(/\d[\d.,]*/g,m=>'<bdi>'+m+'</bdi>');
     const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-    const SHEKEL=' ₪';
+    const BUILDING='<svg class="bicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>';
+    const MAXI='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3476a5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
     const FALLBACK=[
-      {key:'yoseftal',city:'בת ים — יוספטל',type:'פינוי בינוי',presale:false,profit:'1,260,000',rooms:'2.5 ← 3',sqm:'68 ← 84',equity:'500,000',dev:'אבני דרך ורוטשטיין',time:'6–9',img:'assets/deals/yoseftal-new-1.jpg'},
-      {key:'einyahav',city:'חולון — עין יהב',type:'פינוי בינוי',presale:false,profit:'700,000',rooms:'2.5 ← 3',sqm:'50 ← 75',equity:'700,000',dev:'קרסו נדל״ן',time:'4–6',img:'assets/deals/einyahav-new-1.jpg'},
-      {key:'metzada',city:'בת ים — מצדה',type:'פריסייל',presale:true,profit:'700,000 – 400,000',rooms:'3 + מרפסת',sqm:'82 + 8',equity:'402,000',dev:'קרדן נדל״ן',time:'5–7',img:'assets/deals/metzada-new-1.jpg'},
-      {key:'mitzperina',city:'לוד — מצפה רינה',type:'פריסייל',presale:true,profit:'650,000 – 350,000',rooms:'5 + מרפסת',sqm:'117 + 15',equity:'257,000',dev:'צמח המרמן',time:'4–6',img:'assets/deals/mitzperina-new-1.jpg'}
+      {key:'yoseftal',title:'פינוי בינוי | בת ים | יוספטל',city:'בת ים',profit:'1,260,000',img:'assets/deals/yoseftal-new-1.jpg'},
+      {key:'einyahav',title:'פינוי בינוי | חולון | עין יהב',city:'חולון',profit:'700,000',img:'assets/deals/einyahav-new-1.jpg'},
+      {key:'metzada',title:'פריסייל | בת ים | מצדה',city:'בת ים',profit:'700,000 – 400,000',img:'assets/deals/metzada-new-1.jpg'},
+      {key:'mitzperina',title:'פריסייל | לוד | מצפה רינה',city:'לוד',profit:'650,000 – 350,000',img:'assets/deals/mitzperina-new-1.jpg'}
     ];
     let LIST=FALLBACK;
-    // no cover → 1px transparent gif; the CSS background (#dce8f0) is the placeholder
-    const BLANK='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-    const imgTag=(d,cls)=>'<img'+(cls?' class="'+cls+'"':'')+' loading="lazy" src="'+(d.img||BLANK)+'" alt="" onerror="this.style.visibility=\'hidden\'">';
-    function render(d){
-      spotMain.classList.toggle('is-presale',d.presale);
-      const stats=[];
-      if(d.rooms)  stats.push('<div><b>'+R(d.rooms)+'</b><span>חדרים</span></div>');
-      if(d.sqm)    stats.push('<div><b>'+R(d.sqm)+'</b><span>מ״ר</span></div>');
-      if(d.equity) stats.push('<div><b>'+R(d.equity)+SHEKEL+'</b><span>הון עצמי</span></div>');
-      const devline=[esc(d.dev||''), d.time?R(d.time)+' שנים':''].filter(Boolean).join(' · ');
-      const statusTag=d.status?'<span class="s-tag '+(d.status==='מאושר'?'st-ok':'st-chk')+'">'+esc(d.status)+'</span>':'';
-      spotMain.innerHTML=
-        '<div class="spot-head"><span class="s-tag">'+esc(d.type)+'</span>'+statusTag+'<h3>'+esc(d.city)+'</h3></div>'+
-        imgTag(d,'spotimg')+
-        '<div class="spot-foot">'+
-          (d.profit?'<div class="spot-profit"><span class="sp-lbl">פוטנציאל רווח</span><span class="sp-val">'+R(d.profit)+SHEKEL+'</span></div>':'')+
-          (stats.length?'<div class="spot-stats" style="grid-template-columns:repeat('+stats.length+',1fr)">'+stats.join('')+'</div>':'')+
-          '<div class="spot-foot-row">'+
-            '<span class="spot-dev">'+devline+'</span>'+
-            '<button class="spot-cta">צפייה בנתוני העסקה המלאים ›</button>'+
-          '</div>'+
-        '</div>';
-      spotMain.querySelector('.spot-cta').addEventListener('click',()=>{
-        if(d.url) window.open(d.url,'_blank','noopener'); else openDeal(d.key);
-      });
-      spotThumbs.querySelectorAll('.dthumb').forEach(t=>{
-        const on=t.dataset.key===d.key;
-        t.classList.toggle('active',on); t.classList.toggle('is-presale',on&&d.presale);
-      });
-    }
+    const card=d=>{
+      const chip=d.status?'<span class="hb-status '+(d.status==='מאושר'?'ok':'chk')+'">'+esc(d.status)+'</span>':'';
+      const banner=(d.img
+          ?'<img loading="lazy" src="'+d.img+'" alt="" onerror="this.remove()">'
+          :'<span class="dots"></span>'+BUILDING)+
+        '<span class="hb-hover"><span>'+MAXI+' צפייה בעסקה</span></span>';
+      const profit=d.profit?'<span class="hb-profit"><small>פוטנציאל רווח</small>'+R(d.profit)+' ₪</span>':'<span></span>';
+      return '<button class="hubcard" data-key="'+esc(d.key)+'">'+
+        '<span class="hb-banner">'+banner+'</span>'+
+        '<span class="hb-info">'+
+          '<span class="hb-toprow"><span class="hb-title">'+esc(d.title)+'</span>'+chip+'</span>'+
+          '<span class="hb-bottom"><span class="hb-city">'+esc(d.city||'')+'</span>'+profit+'</span>'+
+        '</span></button>';
+    };
     function show(list){
       LIST=list;
-      spotThumbs.innerHTML=LIST.map(d=>
-        '<button class="dthumb" data-key="'+esc(d.key)+'">'+imgTag(d,'')+'<div class="tbx"><b>'+esc(d.city)+'</b><span>'+esc(d.type)+(d.status?' · '+esc(d.status):'')+'</span></div></button>').join('');
-      spotThumbs.querySelectorAll('.dthumb').forEach((t,i)=>t.addEventListener('click',()=>render(LIST[i])));
-      render(LIST[0]);
+      grid.innerHTML=LIST.map(card).join('');
+      grid.querySelectorAll('.hubcard').forEach((el,i)=>el.addEventListener('click',()=>{
+        const d=LIST[i];
+        if(d.url) window.open(d.url,'_blank','noopener'); else openDeal(d.key);
+      }));
     }
     show(FALLBACK);
-    // live deals — CRM public API (business plans flagged is_public)
+    // live deals — CRM public API (approved / in-review plans)
     const fmt=n=>Math.round(n).toLocaleString('en-US');
     fetch('https://crm.duplerealestate.com/api/plans/public')
       .then(r=>r.ok?r.json():null)
       .then(j=>{
         const live=((j&&j.deals)||[]).map(p=>({
-          key:p.id, url:p.investorUrl,
-          city:p.city?(p.city+(p.neighborhood?' — '+p.neighborhood:'')):(p.name||'עסקה'),
-          type:p.typeLabel||'עסקה', status:p.status||null,
-          presale:p.dealType==='new-from-developer',
+          key:p.id, url:p.investorUrl, status:p.status||null,
+          title:[(p.typeLabel||'עסקה'),p.city,p.neighborhood].filter(Boolean).join(' | '),
+          city:p.city||'',
           profit:p.profitPotential?fmt(p.profitPotential):null,
-          rooms:p.rooms?String(p.rooms):null,
-          sqm:p.oldArea?(p.newArea?p.oldArea+' ← '+p.newArea:String(p.oldArea)):null,
-          equity:p.equity?fmt(p.equity):null,
-          dev:p.developer||'',
-          time:p.investmentYears?String(p.investmentYears):null,
           img:p.cover||null
         }));
         if(live.length) show(live);
