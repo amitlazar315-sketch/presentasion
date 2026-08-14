@@ -10,6 +10,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&family=Assistant:wght@400;600;700;800&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
+<!-- ============ MAPLIBRE GL (3D company map, slide 7) ============ -->
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet">
+<script defer src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
 <style>
 /* ====================================================================
    DUPLE — DESIGN TOKENS
@@ -103,6 +107,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   overflow:hidden;
 }
 .slide__inner{width:100%;max-width:var(--maxw);margin:0 auto;position:relative;z-index:2}
+/* slide 8 — wider container so the 4 deal cards per row get real width */
+.slide__inner--wide{max-width:1520px}
 
 /* dark / light modes */
 .slide--dark{background:var(--navy-deep);color:var(--white)}
@@ -521,6 +527,41 @@ body.chrome-dark .counter{color:var(--blue-mid)}
 .maphint{position:absolute;top:12px;right:12px;z-index:3;display:inline-flex;align-items:center;gap:6px;
   padding:6px 12px;border-radius:999px;background:rgba(10,22,40,.6);border:1px solid var(--hairline-2);
   color:var(--cyan-brand);font-size:12px;font-weight:700;pointer-events:none}
+/* ── live 3D map (slide 7) ── */
+#glmap{position:absolute;inset:0;z-index:1;display:none}
+body.glmap-on #glmap{display:block}
+body.glmap-on .mapframe.wide{cursor:default}
+body.glmap-on .mapframe.wide>img{display:none}
+#glmap canvas{outline:none}
+.cmark{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;pointer-events:auto}
+.cmark .cdot{width:11px;height:11px;border-radius:50%;border:2px solid rgba(255,255,255,.85);
+  box-shadow:0 0 10px 2px currentColor;background:currentColor;transition:transform .2s}
+.cmark:hover .cdot{transform:scale(1.35)}
+.cmark .clbl{font-family:var(--he);font-size:10.5px;font-weight:700;color:#eaf4fb;white-space:nowrap;
+  text-shadow:0 1px 4px rgba(4,10,20,.95),0 0 10px rgba(4,10,20,.8)}
+.cmark.inv{color:#2ee08a}
+.cmark.ana{color:#35c4f0}
+#glmap.zfar .cmark.ana.minor .clbl{display:none}
+.maplegend{position:absolute;bottom:14px;right:14px;z-index:4;display:flex;flex-direction:column;gap:7px;
+  background:rgba(10,22,40,.78);backdrop-filter:blur(6px);border:1px solid var(--hairline-2);
+  border-radius:14px;padding:12px 16px;pointer-events:none}
+.maplegend b{font-size:13px;font-weight:800;color:#fff;margin-bottom:2px}
+.maplegend span{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--muted)}
+.maplegend .ld{width:9px;height:9px;border-radius:50%;box-shadow:0 0 8px 1px currentColor;background:currentColor}
+.maplegend .ld.inv{color:#2ee08a}
+.maplegend .ld.ana{color:#35c4f0}
+.maphint svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+body.glmap-on .maphint{pointer-events:none}
+.maplibregl-popup{z-index:5}
+.maplibregl-popup-content{font-family:var(--he);direction:rtl;text-align:right;background:var(--navy-3);
+  color:#fff;border:1px solid var(--hairline-2);border-radius:12px;padding:10px 14px;
+  box-shadow:0 12px 34px rgba(0,0,0,.5)}
+.maplibregl-popup-content b{color:var(--cyan-brand);font-size:13.5px}
+.maplibregl-popup-content .pline{font-family:var(--num);font-size:12.5px;font-weight:700;margin-top:3px}
+.maplibregl-popup-anchor-bottom .maplibregl-popup-tip{border-top-color:var(--navy-3)}
+.maplibregl-popup-anchor-top .maplibregl-popup-tip{border-bottom-color:var(--navy-3)}
+.maplibregl-ctrl-attrib{background:rgba(10,22,40,.55)!important}
+.maplibregl-ctrl-attrib a{color:rgba(255,255,255,.45)!important;font-size:9px}
 .mapmodal{padding:0;background:rgba(5,12,24,.97)}
 .mapmodal.open{align-items:stretch;justify-content:stretch}
 .mapmodal__scroll{flex:1;overflow:hidden;touch-action:none;display:flex;align-items:center;justify-content:center;padding:0}
@@ -591,18 +632,22 @@ body.chrome-dark .counter{color:var(--blue-mid)}
    the grid inside flips back to RTL so card order/text are untouched */
 .hubscroll{direction:ltr;overflow-y:auto;max-height:clamp(420px,62vh,700px);
   margin-top:clamp(16px,2.6vh,30px);overscroll-behavior:contain;
-  padding:4px 4px 12px 14px;
+  padding:12px 10px 20px 14px;
   scrollbar-width:thin;scrollbar-color:var(--cyan-brand) rgba(91,175,214,.15)}
 .hubscroll::-webkit-scrollbar{width:10px}
 .hubscroll::-webkit-scrollbar-track{background:rgba(91,175,214,.15);border-radius:8px}
 .hubscroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--cyan-brand),var(--blue-mid));
   border-radius:8px;box-shadow:0 0 8px rgba(91,175,214,.5)}
 .hubscroll::-webkit-scrollbar-thumb:hover{background:var(--blue-mid)}
-.hubgrid{direction:rtl;display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:16px}
-.hubcard{display:flex;flex-direction:column;text-align:right;border-radius:16px;overflow:hidden;
+/* exactly 4 wide cards per row on desktop; steps down on narrow viewports */
+.hubgrid{direction:rtl;display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,1.25vw,18px)}
+.hubcard{position:relative;display:flex;flex-direction:column;text-align:right;border-radius:16px;overflow:hidden;
   background:#fff;border:1px solid #e2e8f0;cursor:pointer;padding:0;
-  transition:box-shadow .3s ease, transform .3s ease}
-.hubcard:hover{box-shadow:0 20px 44px rgba(10,22,40,.14);transform:translateY(-4px)}
+  transition:box-shadow .3s ease, transform .3s ease, border-color .3s ease}
+/* hover — the card lifts out of the grid with a deep shadow behind it */
+.hubcard:hover{z-index:3;border-color:#c9dced;
+  transform:translateY(-8px) scale(1.03);
+  box-shadow:0 30px 60px -12px rgba(10,22,40,.30), 0 12px 24px -8px rgba(10,22,40,.18), 0 0 0 4px rgba(52,118,165,.10)}
 .hb-banner{position:relative;display:block;width:100%;padding-bottom:56.25%;overflow:hidden;
   background:linear-gradient(135deg,#1e3d5e 0%,#3476a5 100%)}
 .hb-banner .dots{position:absolute;inset:0;
@@ -616,23 +661,32 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   box-shadow:0 8px 24px rgba(0,0,0,.18)}
 .hubcard:hover .hb-hover > span{opacity:1;transform:scale(1)}
 .hb-info{display:block;padding:13px 15px 14px}
-.hb-toprow{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px}
-.hb-title{font-size:14.5px;font-weight:800;color:#1e293b;line-height:1.35;min-width:0}
-.hb-status{flex:0 0 auto;font-size:10px;font-weight:700;border-radius:999px;padding:2px 8px;border:1px solid;margin-top:2px}
+/* deal title — always a single line; the status chip sits on the banner so the
+   title gets the full card width */
+.hb-toprow{display:block}
+.hb-title{display:block;font-size:15px;font-weight:800;color:#1e293b;line-height:1.4;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hb-status{position:absolute;top:10px;inset-inline-end:10px;z-index:2;
+  font-size:10px;font-weight:800;border-radius:999px;padding:3px 9px;border:1px solid;
+  box-shadow:0 2px 8px rgba(10,22,40,.18)}
 .hb-status.ok{background:#dcfce7;color:#166534;border-color:#bbf7d0}
 .hb-status.chk{background:#fef9c3;color:#854d0e;border-color:#fde68a}
-.hb-city{display:block;font-size:11px;color:#94a3b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-/* option-1 stat row — label above number, hairline between columns, profit = hero */
-.hb-stats{display:grid;margin-top:9px;padding-top:9px;border-top:1px solid #eef2f7}
-.hb-stats .st{display:flex;flex-direction:column;gap:3px;align-items:center;text-align:center;position:relative;min-width:0}
-.hb-stats .st+.st::before{content:"";position:absolute;inset-inline-start:0;top:15%;bottom:15%;width:1px;background:#e8eef5}
-.hb-stats .st small{font-size:10px;font-weight:700;color:#94a3b8;letter-spacing:.02em;white-space:nowrap}
-.hb-stats .st b{font-family:var(--num);font-size:13.5px;font-weight:800;color:#1f3348;white-space:nowrap}
-.hb-stats .st.hero b{color:#3476a5;font-size:15px}
-.hb-stats .st.sm b{font-size:11.5px}
-.hb-stats .st.hero.sm b{font-size:12px}
-.hb-stats .st.hero.xs b{font-size:10.5px}
+/* stat row — dark-gray label above the number; all three numbers share one size
+   per card (a long profit range shrinks the whole row, never a single column) */
+.hb-stats{display:grid;column-gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f7}
+.hb-stats .st{display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;position:relative;min-width:0}
+/* the row spans the card edge-to-edge: first stat flush to the card's start,
+   last flush to its end, middle centred — so the block aligns with the title */
+.hb-stats .st:first-child{align-items:flex-start;text-align:start}
+.hb-stats .st:last-child{align-items:flex-end;text-align:end}
+.hb-stats .st+.st::before{content:"";position:absolute;inset-inline-start:-5px;top:12%;bottom:12%;width:1px;background:#e8eef5}
+.hb-stats .st small{font-size:11.5px;font-weight:700;color:#475569;letter-spacing:.01em;white-space:nowrap}
+.hb-stats .st b{font-family:var(--num);font-size:17px;font-weight:800;color:#1f3348;white-space:nowrap}
+.hb-stats.sm .st b{font-size:15.5px}
+.hb-stats.xs .st b{font-size:14px}
+.hb-stats .st.hero b{color:#16a34a}
 .hb-stats .st .u{font-size:.78em;font-weight:700;color:#8aa5bb;margin-inline-start:2px}
+.hb-stats .st.hero .u{color:#4ab27a}
 .hb-stats bdi{direction:ltr;unicode-bidi:isolate}
 
 .modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:clamp(16px,3vw,40px);
@@ -820,7 +874,11 @@ body.chrome-dark .counter{color:var(--blue-mid)}
 /* ====================================================================
    RESPONSIVE
    ==================================================================== */
+@media (max-width:1080px){
+  .hubgrid{grid-template-columns:repeat(3,1fr)}
+}
 @media (max-width:900px){
+  .hubgrid{grid-template-columns:repeat(2,1fr)}
   .grid-4{grid-template-columns:repeat(2,1fr)}
   .grid-3{grid-template-columns:repeat(2,1fr)}
   .deal-grid,.split,.engines,.dash,.maplayout,.bigboxes,.dealgrid{grid-template-columns:1fr}
@@ -905,10 +963,10 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   .hubgrid{grid-template-columns:1fr 1fr;gap:10px}
   .hubscroll{max-height:58vh}
   .hb-title{font-size:12.5px}
-  .hb-stats .st small{font-size:9px}
-  .hb-stats .st b{font-size:12px}
-  .hb-stats .st.hero b{font-size:13px}
-  .hb-stats .st.sm b,.hb-stats .st.hero.sm b{font-size:10.5px}
+  .hb-stats .st small{font-size:9.5px}
+  .hb-stats .st b{font-size:13px}
+  .hb-stats.sm .st b{font-size:11.5px}
+  .hb-stats.xs .st b{font-size:10px}
   /* typography */
   h1.title{font-size:clamp(34px,10vw,54px)}
   h2.headline{font-size:clamp(25px,7.4vw,40px)}
@@ -979,7 +1037,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     <div class="slide__inner">
       <img class="logo-xl reveal" src="assets/logo.png" alt="DUPLE" onerror="this.style.display='none'">
       <h1 class="title reveal d1">דופל נדל״ן</h1>
-      <p class="cover-sub reveal d3">חברה לאסטרטגיית השקעות, <br class="cs-break">יזמות ופתרונות בנדל״ן</p>
+      <p class="cover-sub reveal d3">חברה לאסטרטגיית השקעות, <br class="cs-break">יזמות וטכנולוגיה בנדל״ן</p>
     </div>
   </section>
 
@@ -1141,10 +1199,16 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     <div class="slide__inner">
       <h2 class="headline reveal d1 headline--nowrap">ניתוחים והשקעות של החברה</h2>
       <div class="mapframe wide reveal d3" id="macroMap">
-        <span class="maphint">🔍 לחצו · זום עם האצבעות</span>
-        <!-- [[IMAGE: assets/map.png — צילום מסך של מפת המאקרו מהאתר (אסטרטגיה בשטח → מאקרו)]] -->
+        <span class="maphint" id="mapHint"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><span id="mapHintTxt">לחצו · זום עם האצבעות</span></span>
+        <!-- live 3D map — MapLibre GL over free OpenFreeMap vector tiles; the
+             screenshot below stays as the offline / no-WebGL fallback -->
+        <div id="glmap" dir="ltr"></div>
+        <div class="maplegend" id="mapLegend" style="display:none">
+          <span><i class="ld inv"></i>ערי השקעה</span>
+          <span><i class="ld ana"></i>ערי ניתוח</span>
+        </div>
         <img src="assets/map.png" alt="מפת השליטה במרחב — ערי השקעה וניתוח בכל הארץ" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-        <div class="ph" style="display:none"><div><div class="pi">🗺️</div>שמור את צילום מסך המפה בשם<br><b style="color:var(--cyan-brand)">assets/map.png</b></div></div>
+        <div class="ph" style="display:none"><div><div class="pi"><svg viewBox="0 0 24 24" width="34" height="34" fill="none" stroke="var(--cyan-brand)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-6-2V4l6 2 6-2 6 2v14l-6-2-6 2z"/><path d="M9 6v14M15 4v14"/></svg></div>שמור את צילום מסך המפה בשם<br><b style="color:var(--cyan-brand)">assets/map.png</b></div></div>
       </div>
       <div class="cards grid-2 reveal d5 mt-s">
         <div class="block">
@@ -1175,7 +1239,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
 
   <!-- ============ 08 · רכישת עסקאות (ספוטלייט אינטראקטיבי) ============ -->
   <section class="slide slide--light" data-mode="light" id="deals">
-    <div class="slide__inner">
+    <div class="slide__inner slide__inner--wide">
       <h2 class="headline reveal d1">עסקאות נדל״ן</h2>
       <div class="hubscroll reveal d3"><div class="hubgrid" id="dealGrid"></div></div>
     </div>
@@ -1354,6 +1418,14 @@ body.chrome-dark .counter{color:var(--blue-mid)}
   </div>
 </div>
 
+<!-- ============ BUSINESS-PLAN MODAL (investor view inside the deck) ============ -->
+<div class="modal" id="planModal">
+  <div class="modal__card" style="width:min(1220px,97vw);max-width:none;height:93vh;max-height:93vh;padding:10px;background:#06101f;display:flex;flex-direction:column">
+    <button class="modal__close" id="planClose" aria-label="סגירה">×</button>
+    <iframe id="planFrame" title="תוכנית עסקית" style="flex:1;width:100%;border:0;border-radius:12px;background:#0a1628" allow="fullscreen"></iframe>
+  </div>
+</div>
+
 <!-- ============ MAP MODAL (enlarged, pannable) ============ -->
 <div class="modal mapmodal" id="mapModal">
   <button class="modal__close" id="mapClose" aria-label="סגירה" style="z-index:10">×</button>
@@ -1494,6 +1566,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     if(document.getElementById('dealModal').classList.contains('open')) return;
     if(document.getElementById('videoModal').classList.contains('open')) return;
     if(document.getElementById('mapModal').classList.contains('open')) return;
+    if(document.getElementById('planModal').classList.contains('open')) return;
     if(e.key==='ArrowLeft'||e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(idx+1);}
     else if(e.key==='ArrowRight'||e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();go(idx-1);}
     else if(e.key==='Home'){go(0);} else if(e.key==='End'){go(slides.length-1);}
@@ -1505,6 +1578,8 @@ body.chrome-dark .counter{color:var(--blue-mid)}
      A slide taller than the window still scrolls natively inside itself first. */
   let wheelPrev=0, lockUntil=0;
   deck.addEventListener('wheel',e=>{
+    // wheel over the ACTIVATED live map zooms the map, not the deck
+    if(e.target.closest && e.target.closest('#glmap') && document.body.classList.contains('glmap-live')) return;
     const dy=e.deltaMode===1 ? e.deltaY*16 : e.deltaY; // normalize Firefox line-mode
     // wheel over an inner scrollable (e.g. the deals grid) scrolls IT, not the deck
     for(let el=e.target; el && el!==deck; el=el.parentElement){
@@ -1668,25 +1743,28 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     ];
     let LIST=FALLBACK;
     const card=d=>{
+      // status chip rides on the banner so the title keeps the full card width
       const chip=d.status?'<span class="hb-status '+(d.status==='מאושר'?'ok':'chk')+'">'+esc(d.status)+'</span>':'';
-      const banner=(d.img
-          ?'<img loading="lazy" src="'+d.img+'" alt="" onerror="this.remove()">'
-          :'<span class="dots"></span>'+BUILDING)+
+      // uniform branded banner on every card — no property photos
+      const banner='<span class="dots"></span>'+BUILDING+
         '<span class="hb-hover"><span>'+MAXI+' צפייה בעסקה</span></span>';
-      // option-1 layout: one bottom stat row — profit (hero) | equity | years.
-      // long values (profit ranges) step the font down so columns never overflow
-      const sizeCls=(v,hero)=>{ const n=String(v).length; return n>14?(hero?' xs':' sm'):n>9?' sm':''; };
+      // one bottom stat row — profit (green) | equity | years. all three numbers
+      // share a single size per card: the longest value shrinks the whole row
       const st=[];
-      if(d.profit) st.push('<span class="st hero'+sizeCls(d.profit,1)+'"><small>פוטנציאל רווח</small><b>'+R(d.profit)+'<span class="u">₪</span></b></span>');
-      if(d.equity) st.push('<span class="st'+sizeCls(d.equity)+'"><small>הון עצמי</small><b>'+R(d.equity)+'<span class="u">₪</span></b></span>');
+      if(d.profit) st.push('<span class="st hero"><small>פוטנציאל רווח</small><b>'+R(d.profit)+'<span class="u">₪</span></b></span>');
+      if(d.equity) st.push('<span class="st"><small>הון עצמי</small><b>'+R(d.equity)+'<span class="u">₪</span></b></span>');
       if(d.years)  st.push('<span class="st"><small>זמן השקעה</small><b><bdi>'+esc(d.years)+'</bdi><span class="u">שנים</span></b></span>');
-      const cols=st.length===3?'1.15fr 1fr .85fr':st.length===2?'1.1fr 1fr':'1fr';
-      const stats=st.length?'<span class="hb-stats" style="grid-template-columns:'+cols+'">'+st.join('')+'</span>':'';
-      return '<button class="hubcard" data-key="'+esc(d.key)+'">'+
-        '<span class="hb-banner">'+banner+'</span>'+
+      const longest=Math.max(0,...[d.profit,d.equity,d.years].filter(Boolean).map(v=>String(v).length));
+      const rowCls=longest>18?' xs':longest>12?' sm':'';
+      // the profit column widens as its value gets longer, so a range never
+      // spills past the hairline into the equity column
+      const cols3=rowCls===' xs'?'2.05fr .95fr .8fr':rowCls===' sm'?'1.75fr 1fr .78fr':'1.5fr 1.05fr .8fr';
+      const cols=st.length===3?cols3:st.length===2?'1.3fr 1fr':'1fr';
+      const stats=st.length?'<span class="hb-stats'+rowCls+'" style="grid-template-columns:'+cols+'">'+st.join('')+'</span>':'';
+      return '<button class="hubcard" data-key="'+esc(d.key)+'" title="'+esc(d.title)+'">'+
+        '<span class="hb-banner">'+banner+chip+'</span>'+
         '<span class="hb-info">'+
-          '<span class="hb-toprow"><span class="hb-title">'+esc(d.title)+'</span>'+chip+'</span>'+
-          '<span class="hb-city">'+esc(d.city||'')+'</span>'+stats+
+          '<span class="hb-toprow"><span class="hb-title">'+esc(d.title)+'</span></span>'+stats+
         '</span></button>';
     };
     function show(list){
@@ -1694,7 +1772,8 @@ body.chrome-dark .counter{color:var(--blue-mid)}
       grid.innerHTML=LIST.map(card).join('');
       grid.querySelectorAll('.hubcard').forEach((el,i)=>el.addEventListener('click',()=>{
         const d=LIST[i];
-        if(d.url) window.open(d.url,'_blank','noopener'); else openDeal(d.key);
+        // business plans open INSIDE the deck (iframe modal) — the investor never leaves
+        if(d.url) openPlan(d.url); else openDeal(d.key);
       }));
     }
     show(FALLBACK);
@@ -1707,17 +1786,28 @@ body.chrome-dark .counter{color:var(--blue-mid)}
           key:p.id, url:p.investorUrl, status:p.status||null,
           title:[(p.typeLabel||'עסקה'),p.city,p.neighborhood].filter(Boolean).join(' | '),
           city:p.city||'',
-          profit:p.profitPotential?fmt(p.profitPotential):null,
+          profit:(p.profitPotentialMin!=null&&p.profitPotentialMax!=null&&p.profitPotentialMin!==p.profitPotentialMax)
+            ?fmt(p.profitPotentialMax)+' – '+fmt(p.profitPotentialMin)
+            :(p.profitPotential?fmt(p.profitPotential):null),
           equity:p.equity?fmt(p.equity):null,
           years:(p.investmentYearsMin!=null&&p.investmentYearsMax!=null)
             ?(p.investmentYearsMin===p.investmentYearsMax?String(p.investmentYearsMax):p.investmentYearsMin+'–'+p.investmentYearsMax)
             :(p.investmentYears?String(p.investmentYears):null),
           img:p.cover||null
         }));
-        if(live.length) show(live);
+        if(live.length){ show(live); document.dispatchEvent(new CustomEvent('deals:loaded',{detail:live})); }
       })
       .catch(()=>{}); // offline / API down → fallback stays
   })();
+
+  /* ---- business-plan modal: the CRM investor view inside the deck ---- */
+  const pModal=document.getElementById('planModal');
+  const pFrame=document.getElementById('planFrame');
+  function openPlan(url){ pFrame.src=url; pModal.classList.add('open'); }
+  function closePlan(){ pModal.classList.remove('open'); pFrame.src='about:blank'; }
+  document.getElementById('planClose').addEventListener('click',closePlan);
+  pModal.addEventListener('click',e=>{ if(e.target===pModal) closePlan(); });
+  window.addEventListener('keydown',e=>{ if(e.key==='Escape') closePlan(); });
 
   document.getElementById('dealClose').addEventListener('click',closeDeal);
   modal.addEventListener('click',e=>{ if(e.target===modal) closeDeal(); });
@@ -1737,7 +1827,7 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     function reset(){ scale=1;tx=0;ty=0;apply(); }
     function dist(t){ return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY); }
     function close(){ mm.classList.remove('open'); }
-    map.addEventListener('click',()=>{ reset(); mm.classList.add('open'); });
+    map.addEventListener('click',()=>{ if(document.body.classList.contains('glmap-on')) return; reset(); mm.classList.add('open'); });
     document.getElementById('mapClose').addEventListener('click',e=>{ e.stopPropagation(); close(); });
     scroll.addEventListener('click',e=>{ if(e.target.tagName!=='IMG') close(); });
     scroll.addEventListener('touchstart',e=>{
@@ -1889,6 +1979,178 @@ body.chrome-dark .counter{color:var(--blue-mid)}
     host.querySelectorAll('.eopt.on').forEach(w=>{w.classList.remove('on');w.removeAttribute('data-ord');const o=w.querySelector('.ord');if(o)o.textContent='';});
     host.querySelectorAll('.est.done').forEach(r=>r.classList.remove('done'));
   });
+})();
+</script>
+
+<script>
+/* ====================================================================
+   SLIDE 7 — LIVE 3D COMPANY MAP (MapLibre GL · OpenFreeMap tiles)
+   Investment cities light up green straight from the CRM deals feed;
+   analysis cities are the static cyan set. If the GL engine or the
+   tiles are unavailable (offline / no WebGL) the map.png screenshot
+   fallback simply stays in place.
+   ==================================================================== */
+(function(){
+  const frame=document.getElementById('macroMap');
+  const holder=document.getElementById('glmap');
+  if(!frame||!holder) return;
+
+  /* ---- city coordinates (lng,lat) + which are analysis-only by default ---- */
+  const CITIES={
+    'נהריה':[35.098,33.006],'קריות':[35.085,32.838],'חיפה':[34.989,32.794],
+    'כפר סבא':[34.907,32.175],'רעננה':[34.871,32.184],'הוד השרון':[34.888,32.150],
+    'נתניה':[34.853,32.321],'פתח תקווה':[34.887,32.084],'ירושלים':[35.217,31.771],
+    'רמת השרון':[34.839,32.146],'הרצליה':[34.843,32.166],'תל אביב':[34.780,32.080],
+    'חולון':[34.772,32.011],'לוד':[34.896,31.951],'בת ים':[34.745,32.017],
+    'ראשון לציון':[34.804,31.960],'נס ציונה':[34.798,31.929],'רחובות':[34.811,31.894],
+    'אשדוד':[34.649,31.792],'אשקלון':[34.571,31.665],'אופקים':[34.620,31.314],
+    'באר שבע':[34.791,31.252]
+  };
+  // CRM city names → canonical marker names
+  const ALIAS={'קריית ביאליק':'קריות','קרית ביאליק':'קריות','תל אביב-יפו':'תל אביב','תל-אביב':'תל אביב'};
+  // green before the CRM answers (mirrors the old screenshot); the live feed overrides
+  const SEED_INV=['קריות','ירושלים','רמת השרון','לוד','בת ים','ראשון לציון','באר שבע'];
+  // dense Gush-Dan analysis towns — their labels appear only when zoomed in
+  const MINOR=['כפר סבא','רעננה','הוד השרון','הרצליה','נס ציונה','רחובות','חולון','נתניה'];
+
+  /* ---- branded style: navy ground, dark water, cyan borders, 3D buildings ---- */
+  const STYLE={
+    version:8,
+    sources:{omt:{type:'vector',url:'https://tiles.openfreemap.org/planet'}},
+    layers:[
+      {id:'bg',type:'background',paint:{'background-color':'#0a1628'}},
+      {id:'residential',type:'fill',source:'omt','source-layer':'landuse',
+        filter:['in','class','residential','suburb','neighbourhood'],
+        paint:{'fill-color':'#0e1f36','fill-opacity':.65}},
+      {id:'park',type:'fill',source:'omt','source-layer':'park',
+        paint:{'fill-color':'#0c2030','fill-opacity':.5}},
+      {id:'water',type:'fill',source:'omt','source-layer':'water',
+        paint:{'fill-color':'#050e1c'}},
+      {id:'waterway',type:'line',source:'omt','source-layer':'waterway',
+        paint:{'line-color':'#0d2136','line-width':1}},
+      {id:'roads-minor',type:'line',source:'omt','source-layer':'transportation',minzoom:11,
+        filter:['!in','class','motorway','trunk','primary'],
+        paint:{'line-color':'#13253d','line-width':['interpolate',['linear'],['zoom'],11,.3,15,1.6]}},
+      {id:'roads-major',type:'line',source:'omt','source-layer':'transportation',minzoom:7,
+        filter:['in','class','motorway','trunk','primary'],
+        paint:{'line-color':'#1b3554','line-width':['interpolate',['linear'],['zoom'],7,.5,13,2.6]}},
+      {id:'boundary',type:'line',source:'omt','source-layer':'boundary',
+        filter:['all',['<=','admin_level',2],['!=','maritime',1]],
+        paint:{'line-color':'rgba(91,175,214,.6)','line-width':1.3,'line-dasharray':[3,2]}},
+      {id:'bld3d',type:'fill-extrusion',source:'omt','source-layer':'building',minzoom:13.2,
+        paint:{'fill-extrusion-color':'#17324f',
+          'fill-extrusion-height':['coalesce',['get','render_height'],8],
+          'fill-extrusion-base':['coalesce',['get','render_min_height'],0],
+          'fill-extrusion-opacity':.8}}
+    ]
+  };
+
+  const hintTxt=document.getElementById('mapHintTxt');
+  let deals=null; // city → {count, profit}
+  let markers={}; // city → {marker, el}
+  let mapObj=null, booted=false, flew=false;
+
+  function webglOK(){
+    try{ const c=document.createElement('canvas');
+      return !!(window.WebGLRenderingContext && (c.getContext('webgl')||c.getContext('experimental-webgl'))); }
+    catch(e){ return false; }
+  }
+
+  function popupHTML(name){
+    const d=deals&&deals[name];
+    if(d) return '<b>'+name+'</b><div class="pline">'+(d.count===1?'עסקה אחת':d.count+' עסקאות')+'</div>';
+    return '<b>'+name+'</b><div class="pline">עיר בניתוח מאקרו</div>';
+  }
+
+  function setMarkerType(name,isInv){
+    const m=markers[name]; if(!m) return;
+    m.el.classList.toggle('inv',isInv);
+    m.el.classList.toggle('ana',!isInv);
+  }
+
+  function boot(){
+    if(booted || !window.maplibregl || !webglOK()) return;
+    booted=true;
+    try{
+      mapObj=new maplibregl.Map({
+        container:holder, style:STYLE,
+        center:[34.85,31.85], zoom:6.9, pitch:45, bearing:30,
+        attributionControl:{compact:true},
+        interactive:true, scrollZoom:false, dragPan:false, dragRotate:false,
+        touchZoomRotate:true, doubleClickZoom:true
+      });
+    }catch(e){ return; } // fallback image stays
+    const failT=setTimeout(()=>{ // tiles never arrived (offline) → keep fallback
+      if(!document.body.classList.contains('glmap-on')) try{mapObj.remove()}catch(e){}
+    },8000);
+    mapObj.on('load',()=>{
+      clearTimeout(failT);
+      document.body.classList.add('glmap-on');
+      document.getElementById('mapLegend').style.display='flex';
+      // markers
+      Object.keys(CITIES).forEach(name=>{
+        const el=document.createElement('div');
+        el.className='cmark '+(SEED_INV.includes(name)?'inv':'ana')+(MINOR.includes(name)?' minor':'');
+        el.innerHTML='<span class="cdot"></span><span class="clbl">'+name+'</span>';
+        const pop=new maplibregl.Popup({closeButton:false,offset:14});
+        const mk=new maplibregl.Marker({element:el,anchor:'top'})
+          .setLngLat(CITIES[name]).addTo(mapObj);
+        el.addEventListener('mouseenter',()=>{ pop.setLngLat(CITIES[name]).setHTML(popupHTML(name)).addTo(mapObj); });
+        el.addEventListener('mouseleave',()=>pop.remove());
+        markers[name]={marker:mk,el:el};
+      });
+      if(deals) Object.keys(markers).forEach(n=>setMarkerType(n,!!deals[n]));
+      // click-to-arm: until then the deck keeps its wheel navigation
+      hintTxt.textContent='לחצו להפעלת המפה';
+      frame.addEventListener('click',arm);
+      const zclass=()=>holder.classList.toggle('zfar', mapObj.getZoom()<8.35);
+      mapObj.on('zoom',zclass); zclass();
+      tryFly();
+    });
+    mapObj.on('error',()=>{}); // partial tile errors are fine; boot timeout guards total failure
+  }
+  function arm(){
+    if(document.body.classList.contains('glmap-live')) return;
+    document.body.classList.add('glmap-live');
+    if(!flew){ flew=true; mapObj.flyTo({center:[34.85,32.02],zoom:7.65,pitch:38,bearing:25,offset:[330,0],duration:2600,essential:true}); }
+    mapObj.scrollZoom.enable(); mapObj.dragPan.enable(); mapObj.dragRotate.enable();
+    hintTxt.textContent='גלגלת = זום · גרירה = הזזה · Shift+גרירה = סיבוב';
+  }
+
+  /* ---- cinematic fly-in the first time the slide is reached ----
+     fires from BOTH the observer and map-load, so it works no matter
+     which of the two happens first */
+  let inView=false;
+  function tryFly(){
+    if(inView && mapObj && document.body.classList.contains('glmap-on') && !flew){
+      flew=true;
+      mapObj.flyTo({center:[34.85,32.02],zoom:7.65,pitch:38,bearing:25,offset:[330,0],duration:3600,essential:true});
+    }
+  }
+  const io=new IntersectionObserver(es=>{
+    es.forEach(en=>{ inView=en.isIntersecting; });
+    tryFly();
+  },{root:document.getElementById('deck'),threshold:.5});
+  io.observe(frame.closest('.slide'));
+
+  /* ---- live investment cities from the CRM deals feed (slide 8 fetch) ---- */
+  document.addEventListener('deals:loaded',e=>{
+    const agg={};
+    (e.detail||[]).forEach(d=>{
+      let c=(d.city||'').trim(); c=ALIAS[c]||c;
+      if(!CITIES[c]) return;
+      agg[c]=agg[c]||{count:0,profit:0};
+      agg[c].count++;
+      const p=parseFloat(String(d.profit||'').replace(/[^\d.]/g,''))||0;
+      agg[c].profit+=p;
+    });
+    deals=agg;
+    if(Object.keys(markers).length) Object.keys(markers).forEach(n=>setMarkerType(n,!!deals[n]));
+  });
+
+  /* maplibre loads with defer — init once everything is parsed/loaded */
+  if(document.readyState==='complete') boot();
+  else window.addEventListener('load',boot);
 })();
 </script>
 </body>
