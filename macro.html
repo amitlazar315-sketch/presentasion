@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<title>DUPLE · מאקרו כלכלה · אסטרטגיה, לא מזל</title>
+
+<!-- ============ FONTS ============ -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;800;900&family=Assistant:wght@400;600;700;800&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+/* ====================================================================
+   DUPLE — DESIGN TOKENS
+   ==================================================================== */
+:root{
+  --navy-deep:  #0a1628;
+  --navy-2:     #0e1d33;
+  --navy-3:     #122440;
+  --cyan-brand: #5BAFD6;
+  --blue-mid:   #3B7CA5;
+  --white:      #FFFFFF;
+  --ink:        #0a1628;
+  --ink-soft:   #2b3a4f;
+  --muted:      rgba(255,255,255,0.65);
+  --muted-2:    rgba(255,255,255,0.42);
+  --hairline:   rgba(91,175,214,0.22);
+  --hairline-2: rgba(91,175,214,0.40);
+  --cyan-08:    rgba(91,175,214,0.08);
+  --cyan-15:    rgba(91,175,214,0.15);
+  --glow:       0 0 80px rgba(91,175,214,0.18);
+
+  /* chart series — validated categorical palette on navy surface */
+  --c1: #3E97C4;   /* צריכה פרטית */
+  --c2: #BF8236;   /* השקעות */
+  --c3: #AA6ED6;   /* ממשלה */
+  --c4: #35A873;   /* יצוא נטו */
+  --pos: #5BD6A0;
+  --neg: #E07A7A;
+
+  --he: "Heebo","Assistant",system-ui,sans-serif;
+  --num: "Inter","Heebo",system-ui,sans-serif;
+
+  --maxw: 1240px;
+  --pad: clamp(28px, 5vw, 96px);
+}
+
+/* ====================================================================
+   RESET
+   ==================================================================== */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;width:100%;overflow:hidden;overscroll-behavior:none}
+body{
+  font-family:var(--he);
+  background:var(--navy-deep);
+  color:var(--white);
+  position:fixed;
+  inset:0;
+  overflow:hidden;
+  touch-action:none;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+}
+img{display:block;max-width:100%}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.num{font-family:var(--num);font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+
+/* ====================================================================
+   SLIDE ENGINE — full-viewport deck
+   ==================================================================== */
+#deck{
+  height:100vh;
+  height:100dvh;
+  width:100%;
+  max-width:100vw;
+  overflow-y:scroll;
+  overflow-x:hidden;
+  scroll-snap-type:none;
+  scrollbar-width:none;
+  touch-action:pan-y;
+  overscroll-behavior:contain;
+}
+#deck::-webkit-scrollbar{display:none}
+@media (hover:none), (pointer:coarse){
+  #deck{scroll-snap-type:y proximity}
+  .slide{scroll-snap-stop:normal}
+}
+
+.slide{
+  position:relative;
+  min-height:100vh;
+  min-height:100dvh;
+  width:100%;
+  scroll-snap-align:start;
+  scroll-snap-stop:always;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:clamp(56px,8vh,100px) var(--pad) clamp(44px,6vh,80px);
+  overflow:hidden;
+}
+.slide__inner{width:100%;max-width:var(--maxw);margin:0 auto;position:relative;z-index:2}
+
+.slide--dark{background:var(--navy-deep);color:var(--white)}
+.slide--dark2{background:
+  radial-gradient(1200px 700px at 80% -10%, rgba(91,175,214,0.10), transparent 60%),
+  linear-gradient(180deg,var(--navy-deep),var(--navy-2));color:var(--white)}
+
+.slide--dark::before,.slide--dark2::before{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(900px 520px at 78% 12%,rgba(91,175,214,0.10),transparent 55%);
+}
+.slide--dark::after,.slide--dark2::after{
+  content:"";position:absolute;inset:0;z-index:1;pointer-events:none;
+  background-image:radial-gradient(circle, rgba(91,175,214,0.22) 1.3px, transparent 1.6px);
+  background-size:26px 26px;
+  -webkit-mask:radial-gradient(115% 95% at 80% 8%, #000 0%, rgba(0,0,0,.35) 45%, transparent 78%);
+          mask:radial-gradient(115% 95% at 80% 8%, #000 0%, rgba(0,0,0,.35) 45%, transparent 78%);
+  animation:dotsDrift 26s linear infinite;
+}
+@keyframes dotsDrift{from{background-position:0 0}to{background-position:0 -26px}}
+
+/* ====================================================================
+   TYPOGRAPHY
+   ==================================================================== */
+.eyebrow{
+  display:inline-flex;align-items:center;gap:.55em;
+  font-size:clamp(12px,1.1vw,15px);font-weight:700;letter-spacing:.14em;
+  color:var(--cyan-brand);text-transform:uppercase;
+  margin-bottom:clamp(12px,1.8vh,22px);
+}
+h1.title{font-size:clamp(40px,7vw,104px);font-weight:900;line-height:.98;letter-spacing:-.01em}
+h2.headline{font-size:clamp(28px,4.6vw,60px);font-weight:800;line-height:1.04;letter-spacing:-.01em;
+  margin-bottom:clamp(16px,2.4vh,28px)}
+h2.headline + *{margin-top:0 !important}
+.lead{font-size:clamp(16px,1.6vw,22px);font-weight:400;line-height:1.55;color:var(--muted);max-width:52ch}
+.accent{color:var(--cyan-brand)}
+.mt{margin-top:clamp(20px,3vh,36px)}
+.mt-s{margin-top:14px}
+
+/* ====================================================================
+   NAV / CHROME
+   ==================================================================== */
+.progress{position:fixed;top:0;right:0;left:0;height:9px;z-index:70;background:rgba(91,175,214,.12)}
+.progress__bar{height:100%;width:0;background:linear-gradient(90deg,var(--cyan-brand),var(--blue-mid));
+  box-shadow:0 0 16px rgba(91,175,214,.7);transition:width .25s ease}
+
+.nav-arrows{position:fixed;bottom:26px;left:clamp(20px,4vw,46px);z-index:60;display:flex;gap:10px}
+.nav-arrows button{
+  width:46px;height:46px;border-radius:50%;
+  border:1px solid var(--hairline-2);
+  background:rgba(10,22,40,.55);backdrop-filter:blur(8px);
+  color:var(--cyan-brand);font-size:20px;line-height:1;
+  display:grid;place-items:center;transition:.2s;
+}
+.nav-arrows button:hover{background:var(--cyan-brand);color:var(--navy-deep);transform:translateY(-2px)}
+
+.counter{position:fixed;bottom:30px;right:clamp(20px,4vw,46px);z-index:60;
+  font-family:var(--num);font-size:clamp(26px,3vw,40px);font-weight:900;letter-spacing:.04em;color:var(--cyan-brand)}
+.counter .total{opacity:.45;font-size:.62em}
+
+/* ====================================================================
+   REVEAL
+   ==================================================================== */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.slide.active .reveal{opacity:1;transform:none}
+.reveal.d1{transition-delay:.10s}
+.reveal.d2{transition-delay:.18s}
+.reveal.d3{transition-delay:.26s}
+.reveal.d4{transition-delay:.34s}
+.reveal.d5{transition-delay:.42s}
+
+/* ====================================================================
+   COVER
+   ==================================================================== */
+.cover{align-items:center;text-align:center}
+.cover .logo-xl{height:clamp(110px,16vh,175px);width:auto;margin:0 auto clamp(20px,3vh,34px);
+  filter:drop-shadow(0 20px 60px rgba(91,175,214,.3))}
+.cover .cover-sub{margin-top:16px;font-size:clamp(17px,2.1vw,28px);color:var(--cyan-brand);font-weight:400;letter-spacing:.01em;line-height:1.35}
+.cover .byline{margin-top:clamp(26px,4vh,44px);display:inline-flex;align-items:center;gap:12px;
+  padding:10px 22px;border-radius:999px;border:1px solid var(--hairline-2);background:var(--cyan-08);
+  font-size:clamp(14px,1.3vw,18px);font-weight:700}
+.cover .byline .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan-brand)}
+
+/* ====================================================================
+   CARDS / BLOCKS
+   ==================================================================== */
+.cards{display:grid;gap:clamp(12px,1.4vw,20px)}
+.grid-2{grid-template-columns:repeat(2,1fr)}
+.grid-3{grid-template-columns:repeat(3,1fr)}
+.grid-4{grid-template-columns:repeat(4,1fr)}
+
+.ncard{
+  border:1px solid var(--hairline);border-radius:18px;
+  padding:clamp(14px,1.6vw,24px) clamp(14px,1.6vw,22px);
+  background:var(--cyan-08);position:relative;overflow:hidden;
+  transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease;
+}
+.ncard:hover{transform:translateY(-4px);border-color:var(--hairline-2);box-shadow:var(--glow)}
+.ncard__val{font-family:var(--num);font-weight:800;font-size:clamp(24px,2.8vw,42px);line-height:1;
+  letter-spacing:-.02em;color:var(--white)}
+.ncard__val .unit{font-size:.5em;font-weight:700;color:var(--cyan-brand);margin-inline-start:.15em}
+.ncard__label{margin-top:10px;font-size:clamp(13px,1.05vw,16px);font-weight:600;color:var(--muted)}
+
+.insight{
+  margin-top:clamp(18px,2.8vh,32px);
+  border:1px solid var(--hairline-2);border-radius:16px;
+  background:linear-gradient(150deg,rgba(91,175,214,.14),rgba(59,124,165,.06));
+  padding:clamp(14px,1.8vw,22px) clamp(18px,2.2vw,28px);
+  display:flex;align-items:center;gap:14px;
+  font-size:clamp(15px,1.5vw,21px);font-weight:700;line-height:1.45;
+}
+.insight svg{flex:0 0 auto;width:30px;height:30px;stroke:var(--cyan-brand);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.insight b{color:var(--cyan-brand)}
+
+/* ====================================================================
+   SLIDE 2 — GDP composition
+   ==================================================================== */
+.equation{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:clamp(8px,1.2vw,18px);
+  margin-bottom:clamp(22px,3.4vh,40px)}
+.eq-term{display:flex;flex-direction:column;align-items:center;gap:6px;
+  border:1px solid var(--hairline);border-radius:16px;background:var(--cyan-08);
+  padding:clamp(10px,1.4vw,18px) clamp(14px,2vw,28px);transition:.3s}
+.eq-term:hover{transform:translateY(-4px);box-shadow:var(--glow);border-color:var(--hairline-2)}
+.eq-term .sym{font-family:var(--num);font-weight:900;font-size:clamp(24px,3vw,44px);line-height:1}
+.eq-term .nm{font-size:clamp(12px,1vw,15px);font-weight:700;color:var(--muted)}
+.eq-term.is-y .sym{color:var(--cyan-brand)}
+.eq-op{font-family:var(--num);font-weight:300;font-size:clamp(26px,3.2vw,48px);color:var(--muted-2)}
+
+.gdpbar-wrap{margin-top:clamp(10px,1.6vh,18px)}
+.gdpbar{display:flex;gap:2px;height:clamp(58px,8.5vh,86px);border-radius:14px;overflow:hidden}
+.gdpseg{position:relative;height:100%;border-radius:4px;width:0;
+  transition:width 1.3s cubic-bezier(.16,1,.3,1), filter .2s ease;cursor:default}
+.gdpseg:hover{filter:brightness(1.18)}
+.gdpseg .pct{position:absolute;inset:0;display:grid;place-items:center;
+  font-family:var(--num);font-weight:900;font-size:clamp(15px,1.8vw,26px);color:#fff;
+  text-shadow:0 1px 6px rgba(10,22,40,.55);opacity:0;transition:opacity .5s ease .9s}
+.slide.active .gdpseg .pct{opacity:1}
+.gdplegend{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(10px,1.3vw,18px);margin-top:clamp(14px,2vh,24px)}
+.gl-item{border:1px solid var(--hairline);border-radius:16px;background:var(--cyan-08);
+  padding:clamp(12px,1.4vw,20px);transition:.3s}
+.gl-item:hover{transform:translateY(-4px);border-color:var(--hairline-2);box-shadow:var(--glow)}
+.gl-item .gl-head{display:flex;align-items:center;gap:9px;font-weight:800;font-size:clamp(14px,1.25vw,18px)}
+.gl-item .gl-head .swatch{width:12px;height:12px;border-radius:4px;flex:0 0 auto}
+.gl-item .gl-head .gl-pct{font-family:var(--num);font-weight:900;margin-inline-start:auto;color:var(--white);font-size:clamp(15px,1.4vw,21px);direction:ltr;unicode-bidi:isolate}
+.gl-item p{margin-top:8px;font-size:clamp(12.5px,1.05vw,15px);line-height:1.5;color:var(--muted)}
+
+/* ====================================================================
+   SCENARIO TOGGLE (slides 3+4)
+   ==================================================================== */
+.scen-toggle{display:inline-flex;gap:6px;padding:6px;border-radius:999px;
+  border:1px solid var(--hairline-2);background:rgba(10,22,40,.5);margin-bottom:clamp(18px,2.6vh,30px)}
+.scen-toggle button{
+  padding:10px 22px;border-radius:999px;font-weight:800;font-size:clamp(13px,1.2vw,17px);
+  color:var(--muted);transition:.25s;display:inline-flex;align-items:center;gap:8px}
+.scen-toggle button svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.scen-toggle button.active{background:var(--cyan-brand);color:var(--navy-deep);box-shadow:0 0 22px rgba(91,175,214,.5)}
+
+/* ====================================================================
+   SLIDE 3 — cause→effect chain
+   ==================================================================== */
+.chain{display:flex;align-items:stretch;gap:clamp(6px,.9vw,14px);margin-top:clamp(6px,1vh,12px)}
+.chain-card{flex:1;border:1px solid var(--hairline);border-radius:16px;background:var(--cyan-08);
+  padding:clamp(12px,1.5vw,22px) clamp(10px,1.3vw,18px);text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:10px;transition:.3s;position:relative}
+.chain-card:hover{transform:translateY(-4px);border-color:var(--hairline-2);box-shadow:var(--glow)}
+.chain-card .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;background:var(--cyan-15)}
+.chain-card .ic svg{width:24px;height:24px;stroke:var(--cyan-brand);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.chain-card h4{font-size:clamp(13.5px,1.2vw,17px);font-weight:800;line-height:1.3}
+.chain-card p{font-size:clamp(12px,1vw,14.5px);line-height:1.45;color:var(--muted)}
+.chain-card .dir{font-family:var(--num);font-weight:900;font-size:clamp(15px,1.5vw,21px);
+  display:inline-flex;align-items:center;gap:5px;margin-top:auto}
+.chain-card .dir.up{color:var(--pos)}
+.chain-card .dir.down{color:var(--neg)}
+.chain-arrow{align-self:center;flex:0 0 auto;color:var(--cyan-brand);opacity:.75;animation:arrowPulse 1.8s ease-in-out infinite}
+.chain-arrow svg{width:clamp(18px,2vw,28px);height:clamp(18px,2vw,28px);stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.chain-arrow:nth-of-type(4){animation-delay:.3s}
+.chain-arrow:nth-of-type(6){animation-delay:.6s}
+.chain-arrow:nth-of-type(8){animation-delay:.9s}
+@keyframes arrowPulse{0%,100%{transform:translateX(0);opacity:.55}50%{transform:translateX(-6px);opacity:1}}
+
+.statstrip{display:flex;flex-wrap:wrap;gap:clamp(20px,4vw,72px);align-items:center;
+  border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline);
+  padding:clamp(16px,2.4vh,28px) 0;margin-top:clamp(20px,3.2vh,36px)}
+.statstrip .stat{display:flex;flex-direction:column;gap:6px}
+.statstrip .stat b{font-family:var(--num);font-size:clamp(26px,3.2vw,46px);font-weight:900;letter-spacing:-.02em;color:#fff;direction:ltr;unicode-bidi:isolate}
+.statstrip .stat span{font-size:14px;font-weight:600;color:var(--muted)}
+
+/* ====================================================================
+   SLIDE 4 — currency seesaw
+   ==================================================================== */
+.split{display:grid;grid-template-columns:1fr 1.1fr;gap:clamp(20px,3.4vw,54px);align-items:center}
+.seesaw-box{position:relative}
+.seesaw-box svg{width:100%;max-width:470px;height:auto;display:block;margin:0 auto}
+.seesaw-beam{transform-origin:250px 150px;transition:transform 1s cubic-bezier(.34,1.3,.64,1)}
+.fx-effects{display:flex;flex-direction:column;gap:clamp(9px,1.2vh,14px)}
+.fx-card{border:1px solid var(--hairline);border-radius:14px;background:var(--cyan-08);
+  padding:clamp(11px,1.3vw,17px) clamp(13px,1.5vw,20px);display:flex;align-items:center;gap:13px;transition:.3s}
+.fx-card:hover{transform:translateY(-3px);border-color:var(--hairline-2);box-shadow:var(--glow)}
+.fx-card .ic{flex:0 0 auto;width:40px;height:40px;border-radius:11px;display:grid;place-items:center;background:var(--cyan-15)}
+.fx-card .ic svg{width:22px;height:22px;stroke:var(--cyan-brand);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.fx-card .tx{flex:1}
+.fx-card .tx b{display:block;font-size:clamp(13.5px,1.2vw,17px);font-weight:800;line-height:1.3}
+.fx-card .tx span{display:block;font-size:clamp(12px,1vw,14.5px);color:var(--muted);margin-top:2px;line-height:1.4}
+.fx-card .dir{font-family:var(--num);font-weight:900;font-size:clamp(16px,1.6vw,22px)}
+.fx-card .dir.up{color:var(--pos)}
+.fx-card .dir.down{color:var(--neg)}
+
+/* ====================================================================
+   SLIDE 5 — crisis chart
+   ==================================================================== */
+.chartwrap{direction:ltr;position:relative;margin-top:clamp(6px,1vh,12px);max-width:960px;margin-inline:auto}
+.chartwrap svg{width:100%;height:auto;display:block}
+.chartwrap .axis-t{font-family:var(--num);font-size:13px;font-weight:600;fill:rgba(255,255,255,.45)}
+.chartwrap .anno{font-family:var(--he);font-size:14.5px;font-weight:700;fill:rgba(255,255,255,.85)}
+.chartwrap .anno-sub{font-family:var(--he);font-size:12px;font-weight:600;fill:rgba(255,255,255,.5)}
+.chart-tip{position:absolute;pointer-events:none;z-index:5;background:var(--navy-3);
+  border:1px solid var(--hairline-2);border-radius:10px;padding:8px 12px;
+  font-size:13px;font-weight:700;white-space:nowrap;opacity:0;transition:opacity .15s ease;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);direction:rtl}
+.chart-tip .num{color:var(--cyan-brand)}
+#crisisLine{stroke-dasharray:3000;stroke-dashoffset:3000;transition:stroke-dashoffset 2.6s cubic-bezier(.4,0,.2,1) .3s}
+.slide.active #crisisLine{stroke-dashoffset:0}
+#crisisArea{opacity:0;transition:opacity 1.2s ease 1.6s}
+.slide.active #crisisArea{opacity:1}
+.crisis-note{margin-top:6px;font-size:12.5px;color:var(--muted-2);font-weight:600}
+
+/* ====================================================================
+   SLIDE 6 — buyers vs sellers scale
+   ==================================================================== */
+.scale-box{display:flex;justify-content:center;margin:clamp(4px,.8vh,10px) 0 clamp(10px,1.6vh,18px)}
+.scale-box svg{width:min(430px,60vw);height:auto;display:block}
+.scale-beam{transform-origin:280px 84px;transition:transform 1.4s cubic-bezier(.34,1.2,.64,1) .5s;transform:rotate(0deg)}
+.slide.active .scale-beam{transform:rotate(-7deg)}
+.scale-pan-r,.scale-pan-l{transition:transform 1.4s cubic-bezier(.34,1.2,.64,1) .5s}
+.slide.active .scale-pan-r{transform:translateY(-22px)}
+.slide.active .scale-pan-l{transform:translateY(22px)}
+.factors{display:grid;grid-template-columns:1fr 1fr;gap:clamp(14px,2vw,28px)}
+.fcol{border:1px solid var(--hairline);border-radius:18px;background:var(--cyan-08);padding:clamp(14px,1.7vw,24px)}
+.fcol.win{border-color:var(--hairline-2);background:linear-gradient(160deg,rgba(91,175,214,.16),rgba(91,175,214,.05));box-shadow:var(--glow)}
+.fcol h4{display:flex;align-items:center;gap:10px;font-size:clamp(16px,1.5vw,22px);font-weight:800;margin-bottom:12px}
+.fcol h4 svg{width:22px;height:22px;stroke:var(--cyan-brand);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.fcol ul{list-style:none;display:flex;flex-direction:column;gap:9px}
+.fcol li{display:flex;align-items:flex-start;gap:9px;font-size:clamp(13px,1.15vw,16px);line-height:1.45;color:var(--muted);font-weight:600}
+.fcol li::before{content:"";flex:0 0 auto;width:7px;height:7px;border-radius:50%;background:var(--cyan-brand);margin-top:7px}
+.verdict{
+  margin-top:clamp(14px,2vh,24px);
+  border:1px solid var(--hairline-2);border-radius:20px;
+  background:linear-gradient(150deg,var(--blue-mid),var(--navy-3));
+  padding:clamp(16px,2vw,26px) clamp(18px,2.4vw,32px);position:relative;overflow:hidden}
+.verdict::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(500px 200px at 85% 0%,rgba(255,255,255,.10),transparent 60%)}
+.verdict .v-eyebrow{font-size:clamp(12px,1.05vw,15px);font-weight:800;letter-spacing:.12em;color:rgba(255,255,255,.75);margin-bottom:8px}
+.verdict h3{font-size:clamp(21px,2.6vw,36px);font-weight:900;line-height:1.15}
+.verdict p{margin-top:10px;font-size:clamp(14px,1.35vw,19px);line-height:1.55;color:rgba(255,255,255,.88);max-width:72ch}
+
+/* ====================================================================
+   CLOSING
+   ==================================================================== */
+.close-photo{width:clamp(150px,17vw,220px);aspect-ratio:1;border-radius:50%;object-fit:cover;object-position:50% 14%;
+  margin:clamp(30px,5vh,54px) auto 0;border:3px solid var(--hairline-2);box-shadow:0 24px 70px rgba(0,0,0,.5),0 0 46px rgba(91,175,214,.28)}
+.sociallinks{display:flex;align-items:center;justify-content:center;gap:clamp(18px,3vw,38px)}
+.slogo{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;
+  border:1px solid var(--hairline-2);background:var(--cyan-08);transition:.25s}
+.slogo svg{width:24px;height:24px;fill:var(--cyan-brand)}
+.slogo:hover{transform:translateY(-4px);background:var(--cyan-brand)}
+.slogo:hover svg{fill:var(--navy-deep)}
+.slogo--logo{width:auto;height:auto;border:none;background:none}
+.slogo--logo img{height:64px;width:auto}
+.slogo--logo:hover{background:none;transform:translateY(-4px) scale(1.04)}
+
+/* ====================================================================
+   MOBILE
+   ==================================================================== */
+@media (max-width:760px){
+  .slide{justify-content:flex-start;padding-top:70px}
+  .grid-2,.grid-3,.grid-4,.gdplegend,.factors,.split{grid-template-columns:1fr}
+  .chain{flex-direction:column}
+  .chain-arrow{transform:rotate(-90deg);animation:none;opacity:.6}
+  .equation{gap:6px}
+  .eq-op{font-size:20px}
+  .eq-term{padding:8px 12px}
+  .statstrip{gap:18px}
+  .counter{font-size:22px;bottom:26px}
+  .nav-arrows{bottom:20px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+  .reveal{opacity:1;transform:none}
+  #crisisLine{stroke-dashoffset:0}
+  #crisisArea{opacity:1}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ FIXED CHROME ============ -->
+<div class="progress"><div class="progress__bar" id="progressBar"></div></div>
+<div class="nav-arrows">
+  <button id="next" aria-label="הבא">&#8594;</button>
+  <button id="prev" aria-label="הקודם">&#8592;</button>
+</div>
+<div class="counter num"><span id="cur">01</span><span class="total"> / <span id="tot">07</span></span></div>
+
+<main id="deck">
+
+  <!-- ============ 01 · COVER ============ -->
+  <section class="slide slide--dark cover">
+    <div class="slide__inner">
+      <img class="logo-xl reveal" src="assets/logo.png" alt="DUPLE" onerror="this.style.display='none'">
+      <h1 class="title reveal d1">מאקרו כלכלה</h1>
+      <p class="cover-sub reveal d3">להבין את התמונה הגדולה — <br>לפני שמקבלים החלטת השקעה</p>
+      <div class="byline reveal d4"><span class="dot"></span>עמית לזר · דופל נדל״ן</div>
+    </div>
+  </section>
+
+  <!-- ============ 02 · ממה מורכב התוצר ============ -->
+  <section class="slide slide--dark2">
+    <div class="slide__inner">
+      <span class="eyebrow reveal">01 · התוצר</span>
+      <h2 class="headline reveal d1">ממה מורכב התוצר?</h2>
+
+      <div class="equation reveal d2" aria-label="נוסחת התוצר">
+        <div class="eq-term is-y"><span class="sym num">Y</span><span class="nm">התוצר</span></div>
+        <span class="eq-op num">=</span>
+        <div class="eq-term"><span class="sym num" style="color:var(--c1)">C</span><span class="nm">צריכה פרטית</span></div>
+        <span class="eq-op num">+</span>
+        <div class="eq-term"><span class="sym num" style="color:var(--c2)">I</span><span class="nm">השקעות</span></div>
+        <span class="eq-op num">+</span>
+        <div class="eq-term"><span class="sym num" style="color:var(--c3)">G</span><span class="nm">הוצאה ממשלתית</span></div>
+        <span class="eq-op num">+</span>
+        <div class="eq-term"><span class="sym num" style="color:var(--c4)">NX</span><span class="nm">יצוא נטו</span></div>
+      </div>
+
+      <!-- 100% stacked bar — animated on activate -->
+      <div class="gdpbar-wrap reveal d3">
+        <div class="gdpbar" id="gdpbar">
+          <div class="gdpseg" data-w="50" style="background:var(--c1)"><span class="pct num">50%</span></div>
+          <div class="gdpseg" data-w="23" style="background:var(--c2)"><span class="pct num">23%</span></div>
+          <div class="gdpseg" data-w="22" style="background:var(--c3)"><span class="pct num">22%</span></div>
+          <div class="gdpseg" data-w="5"  style="background:var(--c4)"><span class="pct num">5%</span></div>
+        </div>
+      </div>
+
+      <div class="gdplegend reveal d4">
+        <div class="gl-item">
+          <div class="gl-head"><span class="swatch" style="background:var(--c1)"></span>צריכה פרטית<span class="gl-pct num">~50%</span></div>
+          <p>כל מה שמשקי הבית מוציאים — מזון, דיור, שירותים. המנוע הגדול של הכלכלה: כשהצרכן עוצר, הכול מרגיש.</p>
+        </div>
+        <div class="gl-item">
+          <div class="gl-head"><span class="swatch" style="background:var(--c2)"></span>השקעות<span class="gl-pct num">~23%</span></div>
+          <p>מכונות, טכנולוגיה — ובנייה חדשה. כאן יושב הנדל״ן: התחלות בנייה הן רכיב השקעה בתוצר.</p>
+        </div>
+        <div class="gl-item">
+          <div class="gl-head"><span class="swatch" style="background:var(--c3)"></span>הוצאה ממשלתית<span class="gl-pct num">~22%</span></div>
+          <p>ביטחון, חינוך, בריאות, תשתיות. בזמן מלחמה ההוצאה קופצת — וזה משפיע על הגירעון ועל הריבית.</p>
+        </div>
+        <div class="gl-item">
+          <div class="gl-head"><span class="swatch" style="background:var(--c4)"></span>יצוא נטו<span class="gl-pct num">~5%</span></div>
+          <p>יצוא פחות יבוא. ההייטק הישראלי מייצא הרבה — וזה אחד הכוחות שמחזקים את השקל לאורך זמן.</p>
+        </div>
+      </div>
+
+      <div class="insight reveal d5">
+        <svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.7 1 1.6 1 2.5h6c0-.9.2-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>
+        <span>כשהתוצר צומח — יש עבודה, יש שכר, יש ביטחון צרכני. <b>שוק נדל״ן חזק נשען קודם כול על כלכלה שצומחת.</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 · ריבית ואינפלציה ============ -->
+  <section class="slide slide--dark" id="rates">
+    <div class="slide__inner">
+      <span class="eyebrow reveal">02 · ריבית ואינפלציה</span>
+      <h2 class="headline reveal d1">הריבית — ההגה של הכלכלה</h2>
+
+      <div class="scen-toggle reveal d2" id="rateToggle" role="tablist">
+        <button class="active" data-scen="up">
+          <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          ריבית עולה
+        </button>
+        <button data-scen="down">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+          ריבית יורדת
+        </button>
+      </div>
+
+      <div class="chain reveal d3" id="rateChain">
+        <div class="chain-card">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M4 21h16M6 21V10l6-6 6 6v11M10 21v-5h4v5"/></svg></div>
+          <h4>בנק ישראל</h4>
+          <p data-up="האינפלציה חורגת מהיעד — מעלים ריבית" data-down="האינפלציה ביעד — אפשר להוריד ריבית">האינפלציה חורגת מהיעד — מעלים ריבית</p>
+          <span class="dir num" data-updir="up:ריבית ↑|down:ריבית ↓">ריבית ↑</span>
+        </div>
+        <div class="chain-arrow"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+        <div class="chain-card">
+          <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></div>
+          <h4>מחיר הכסף</h4>
+          <p data-up="משכנתא ואשראי מתייקרים — ההחזר החודשי קופץ" data-down="משכנתא ואשראי מוזלים — ההחזר החודשי יורד">משכנתא ואשראי מתייקרים — ההחזר החודשי קופץ</p>
+          <span class="dir num" data-updir="up:משכנתא ↑|down:משכנתא ↓">משכנתא ↑</span>
+        </div>
+        <div class="chain-arrow"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+        <div class="chain-card">
+          <div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="21" r="1.5"/><circle cx="18" cy="21" r="1.5"/><path d="M2 3h3l2.6 12.5a2 2 0 0 0 2 1.5h7.9a2 2 0 0 0 2-1.6L21 8H6"/></svg></div>
+          <h4>הביקוש</h4>
+          <p data-up="פחות קונים עומדים בתשלום — הביקוש מתקרר" data-down="קונים חוזרים לשוק — הביקוש מתחמם">פחות קונים עומדים בתשלום — הביקוש מתקרר</p>
+          <span class="dir num" data-updir="up:ביקוש ↓|down:ביקוש ↑">ביקוש ↓</span>
+        </div>
+        <div class="chain-arrow"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+        <div class="chain-card">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg></div>
+          <h4>המחירים</h4>
+          <p data-up="עסקאות נדחות, מחירים מתמתנים — האינפלציה נבלמת" data-down="עסקאות מתרבות — לחץ חוזר על המחירים">עסקאות נדחות, מחירים מתמתנים — האינפלציה נבלמת</p>
+          <span class="dir num" data-updir="up:אינפלציה ↓|down:אינפלציה ↑">אינפלציה ↓</span>
+        </div>
+        <div class="chain-arrow"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></div>
+        <div class="chain-card">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-6h6v6M9 11h.01M15 11h.01"/></svg></div>
+          <h4>שוק הנדל״ן</h4>
+          <p data-up="שוק איטי — אבל מי שנכנס עכשיו פוגש פחות תחרות" data-down="השוק מתעורר — מי שהקדים נהנה מעליית הערך">שוק איטי — אבל מי שנכנס עכשיו פוגש פחות תחרות</p>
+          <span class="dir num" data-updir="up:הזדמנות|down:תנופה">הזדמנות</span>
+        </div>
+      </div>
+
+      <!-- [[DATA: עדכן את המספרים לפני צילום — ריבית בנק ישראל / אינפלציה שנתית ]] -->
+      <div class="statstrip reveal d4">
+        <div class="stat"><b class="num" data-count="4.25" data-decimals="2" data-suffix="%">4.25%</b><span>ריבית בנק ישראל</span></div>
+        <div class="stat"><b class="num" data-count="2.5" data-decimals="1" data-suffix="%">2.5%</b><span>אינפלציה שנתית</span></div>
+        <div class="stat"><b class="num">1%–3%</b><span>יעד יציבות המחירים</span></div>
+      </div>
+
+      <div class="insight reveal d5">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        <span>הריבית היא כלי מחזורי — היא עולה כדי לבלום ויורדת כדי להאיץ. <b>המשקיע החכם לא נבהל מהמחזור, הוא מתזמן אותו.</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 · שער המטבע ============ -->
+  <section class="slide slide--dark2" id="fx">
+    <div class="slide__inner">
+      <span class="eyebrow reveal">03 · שער המטבע</span>
+      <h2 class="headline reveal d1">המטבע — הכוח השקט של השוק</h2>
+
+      <div class="scen-toggle reveal d2" id="fxToggle" role="tablist">
+        <button class="active" data-scen="weak">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
+          שקל נחלש
+        </button>
+        <button data-scen="strong">
+          <svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          שקל מתחזק
+        </button>
+      </div>
+
+      <div class="split">
+        <!-- seesaw ₪ / $ -->
+        <div class="seesaw-box reveal d3" dir="ltr">
+          <svg viewBox="0 0 500 300" aria-label="מאזן שקל-דולר">
+            <defs>
+              <linearGradient id="beamGrad" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#5BAFD6"/><stop offset="1" stop-color="#3B7CA5"/>
+              </linearGradient>
+            </defs>
+            <!-- base -->
+            <path d="M250 150 L218 262 L282 262 Z" fill="#122440" stroke="rgba(91,175,214,.4)" stroke-width="1.5"/>
+            <rect x="180" y="262" width="140" height="10" rx="5" fill="#122440" stroke="rgba(91,175,214,.4)" stroke-width="1.5"/>
+            <!-- beam + pans (tilt driven by JS) -->
+            <g class="seesaw-beam" id="fxBeam" style="transform:rotate(8deg)">
+              <rect x="60" y="144" width="380" height="12" rx="6" fill="url(#beamGrad)"/>
+              <circle cx="250" cy="150" r="14" fill="#0e1d33" stroke="#5BAFD6" stroke-width="3"/>
+              <!-- left pan: $ -->
+              <g>
+                <path d="M100 156 L80 208 M100 156 L120 208" stroke="rgba(91,175,214,.55)" stroke-width="2"/>
+                <path d="M72 208 A 28 28 0 0 0 128 208 Z" fill="#122440" stroke="rgba(91,175,214,.5)" stroke-width="2"/>
+                <circle cx="100" cy="196" r="21" fill="#0e1d33" stroke="#35A873" stroke-width="2.5"/>
+                <text x="100" y="204" text-anchor="middle" font-family="Inter,sans-serif" font-weight="900" font-size="24" fill="#5BD6A0">$</text>
+              </g>
+              <!-- right pan: ₪ -->
+              <g>
+                <path d="M400 156 L380 208 M400 156 L420 208" stroke="rgba(91,175,214,.55)" stroke-width="2"/>
+                <path d="M372 208 A 28 28 0 0 0 428 208 Z" fill="#122440" stroke="rgba(91,175,214,.5)" stroke-width="2"/>
+                <circle cx="400" cy="196" r="21" fill="#0e1d33" stroke="#3E97C4" stroke-width="2.5"/>
+                <text x="400" y="204" text-anchor="middle" font-family="Inter,sans-serif" font-weight="900" font-size="22" fill="#5BAFD6">₪</text>
+              </g>
+            </g>
+            <!-- rate readout -->
+            <text id="fxRate" x="250" y="52" text-anchor="middle" font-family="Inter,sans-serif" font-weight="900" font-size="30" fill="#FFFFFF">$1 = ₪3.90</text>
+            <text id="fxRateLbl" x="250" y="76" text-anchor="middle" font-family="Heebo,sans-serif" font-weight="700" font-size="14" fill="rgba(255,255,255,.55)">הדולר מתחזק מול השקל</text>
+          </svg>
+        </div>
+
+        <div class="fx-effects reveal d4" id="fxEffects">
+          <div class="fx-card">
+            <div class="ic"><svg viewBox="0 0 24 24"><path d="M2 20h20M4 20V9l8-5 8 5v11"/><path d="M8 20v-7h8v7"/></svg></div>
+            <div class="tx">
+              <b>תשומות הבנייה</b>
+              <span data-weak="ברזל, מלט וחומרי גלם מיובאים מתייקרים — עלות הבנייה עולה" data-strong="חומרי הגלם המיובאים מוזלים — לחץ העלויות יורד">ברזל, מלט וחומרי גלם מיובאים מתייקרים — עלות הבנייה עולה</span>
+            </div>
+            <span class="dir num" data-updir="weak:up|strong:down">↑</span>
+          </div>
+          <div class="fx-card">
+            <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 4 5.6 4 9s-1.5 6.4-4 9c-2.5-2.6-4-5.6-4-9s1.5-6.4 4-9z"/></svg></div>
+            <div class="tx">
+              <b>אינפלציה מיובאת</b>
+              <span data-weak="כל מוצר מיובא עולה יותר שקלים — האינפלציה מקבלת דלק" data-strong="היבוא מוזל — האינפלציה נרגעת והריבית יכולה לרדת">כל מוצר מיובא עולה יותר שקלים — האינפלציה מקבלת דלק</span>
+            </div>
+            <span class="dir num" data-updir="weak:up|strong:down">↑</span>
+          </div>
+          <div class="fx-card">
+            <div class="ic"><svg viewBox="0 0 24 24"><path d="M12 21c-4-3.5-8-6.6-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 3.5C20 14.4 16 17.5 12 21z"/></svg></div>
+            <div class="tx">
+              <b>משקיעי חוץ ועולים</b>
+              <span data-weak="הדולר שלהם שווה יותר שקלים — נדל״ן ישראלי נהיה זול עבורם" data-strong="הדולר שלהם שווה פחות — כוח הקנייה שלהם בארץ נשחק">הדולר שלהם שווה יותר שקלים — נדל״ן ישראלי נהיה זול עבורם</span>
+            </div>
+            <span class="dir num" data-updir="weak:up|strong:down">↑</span>
+          </div>
+          <div class="fx-card">
+            <div class="ic"><svg viewBox="0 0 24 24"><path d="M3 17l5-5 4 4 8-8"/><path d="M14 8h6v6"/></svg></div>
+            <div class="tx">
+              <b>שוק ההון והייטק</b>
+              <span data-weak="שקל חלש לרוב משקף לחץ בשווקים — סנטימנט זהיר" data-strong="הייטק מייצא, כסף נכנס — ביטחון כלכלי וביקושים חזקים">שקל חלש לרוב משקף לחץ בשווקים — סנטימנט זהיר</span>
+            </div>
+            <span class="dir num" data-updir="weak:down|strong:up">↓</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="insight reveal d5">
+        <svg viewBox="0 0 24 24"><path d="M7 16l-4-4 4-4M3 12h18M17 8l4 4-4 4"/></svg>
+        <span>המטבע מחבר את ישראל לעולם: <b>שקל חלש מייקר את הבנייה ומוזיל אותנו למשקיע הזר — שני כוחות שפוגשים את אותו שוק.</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 · מלחמות ומשברים ============ -->
+  <section class="slide slide--dark" id="crisis">
+    <div class="slide__inner">
+      <span class="eyebrow reveal">04 · מלחמות ומשברים</span>
+      <h2 class="headline reveal d1">משבר בשוק — ההלם, הקיפאון והקפיץ</h2>
+
+      <div class="chartwrap reveal d2" id="crisisChart">
+        <svg viewBox="0 0 940 360" aria-label="דפוס אופייני של שוק הנדלן במשבר">
+          <defs>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#5BAFD6" stop-opacity=".28"/>
+              <stop offset="1" stop-color="#5BAFD6" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- baseline 100 -->
+          <line x1="40" y1="130" x2="900" y2="130" stroke="rgba(91,175,214,.30)" stroke-width="1.5" stroke-dasharray="6 7"/>
+          <text class="axis-t" x="34" y="134" text-anchor="end">100</text>
+          <!-- grid hairlines -->
+          <line x1="40" y1="230" x2="900" y2="230" stroke="rgba(91,175,214,.10)" stroke-width="1"/>
+          <text class="axis-t" x="34" y="234" text-anchor="end">55</text>
+          <line x1="40" y1="310" x2="900" y2="310" stroke="rgba(91,175,214,.10)" stroke-width="1"/>
+          <!-- shock marker -->
+          <line x1="215" y1="60" x2="215" y2="310" stroke="rgba(224,122,122,.45)" stroke-width="1.5" stroke-dasharray="4 5"/>
+          <text class="anno" x="215" y="46" text-anchor="middle" fill="#E07A7A">פרוץ המשבר</text>
+          <!-- area + line (animated draw-in) -->
+          <path id="crisisArea" fill="url(#areaGrad)" stroke="none"
+            d="M40 128 L100 126 L160 124 L215 122 L245 210 L285 252 L330 258 L375 248 L420 222 L465 186 L510 148 L555 118 L600 96 L645 82 L690 76 L735 80 L790 78 L845 74 L900 76 L900 310 L40 310 Z"/>
+          <path id="crisisLine" fill="none" stroke="#5BAFD6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"
+            style="filter:drop-shadow(0 0 8px rgba(91,175,214,.55))"
+            d="M40 128 L100 126 L160 124 L215 122 L245 210 L285 252 L330 258 L375 248 L420 222 L465 186 L510 148 L555 118 L600 96 L645 82 L690 76 L735 80 L790 78 L845 74 L900 76"/>
+          <!-- phase annotations -->
+          <text class="anno" x="300" y="300" text-anchor="middle">קיפאון</text>
+          <text class="anno-sub" x="300" y="318" text-anchor="middle">עסקאות נעצרות, אף אחד לא זז</text>
+          <text class="anno" x="530" y="205" text-anchor="middle">התאוששות</text>
+          <text class="anno-sub" x="530" y="223" text-anchor="middle">הוודאות חוזרת בהדרגה</text>
+          <text class="anno" x="770" y="46" text-anchor="middle">שחרור ביקוש כבוש</text>
+          <text class="anno-sub" x="770" y="64" text-anchor="middle">כל מי שחיכה — חוזר בבת אחת</text>
+          <!-- hover targets (invisible, wide) -->
+          <g id="crisisPts"></g>
+        </svg>
+        <div class="chart-tip" id="crisisTip"></div>
+        <div class="crisis-note">מדד עסקאות סכמטי · להמחשת הדפוס החוזר — לא נתוני אמת</div>
+      </div>
+
+      <div class="cards grid-3 mt-s reveal d3">
+        <div class="ncard"><div class="ncard__val num" style="font-size:clamp(17px,1.7vw,24px)">2006 · לבנון השנייה</div>
+          <div class="ncard__label">חודשי לחימה קפואים — והשוק חזר לעסקאות ולמחירים תוך רבעונים בודדים</div></div>
+        <div class="ncard"><div class="ncard__val num" style="font-size:clamp(17px,1.7vw,24px)">2020 · קורונה</div>
+          <div class="ncard__label">קיפאון מוחלט — ואחריו שנתיים מהחזקות שידע שוק הנדל״ן הישראלי</div></div>
+        <div class="ncard"><div class="ncard__val num" style="font-size:clamp(17px,1.7vw,24px)">2023 · חרבות ברזל</div>
+          <div class="ncard__label">צניחה חדה בעסקאות בפרוץ המלחמה — והתאוששות הדרגתית כשהוודאות חזרה</div></div>
+      </div>
+
+      <div class="insight reveal d4">
+        <svg viewBox="0 0 24 24"><path d="M13 2L4.5 13.5H11l-1 8.5L18.5 10.5H12z"/></svg>
+        <span>משבר לא מוחק ביקוש — הוא דוחס אותו. <b>מי שפעל בתוך הקיפאון קנה בלי תחרות, ופגש את השחרור מהצד הנכון.</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 · שוק של קונים או מוכרים ============ -->
+  <section class="slide slide--dark2" id="verdict">
+    <div class="slide__inner">
+      <span class="eyebrow reveal">05 · השורה התחתונה</span>
+      <h2 class="headline reveal d1">אז — שוק של קונים או של מוכרים?</h2>
+
+      <div class="scale-box reveal d2" dir="ltr">
+        <svg viewBox="0 0 560 300" aria-label="מאזניים — קונים מול מוכרים">
+          <defs>
+            <linearGradient id="beamGrad2" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#5BAFD6"/><stop offset="1" stop-color="#3B7CA5"/>
+            </linearGradient>
+          </defs>
+          <path d="M280 84 L252 240 L308 240 Z" fill="#122440" stroke="rgba(91,175,214,.4)" stroke-width="1.5"/>
+          <rect x="212" y="240" width="136" height="10" rx="5" fill="#122440" stroke="rgba(91,175,214,.4)" stroke-width="1.5"/>
+          <g class="scale-beam">
+            <rect x="80" y="78" width="400" height="12" rx="6" fill="url(#beamGrad2)"/>
+            <circle cx="280" cy="84" r="13" fill="#0e1d33" stroke="#5BAFD6" stroke-width="3"/>
+          </g>
+          <!-- right pan (higher = lighter): מוכרים -->
+          <g class="scale-pan-r">
+            <path d="M462 92 L442 148 M462 92 L482 148" stroke="rgba(91,175,214,.55)" stroke-width="2"/>
+            <path d="M430 148 A 32 32 0 0 0 494 148 Z" fill="#122440" stroke="rgba(91,175,214,.5)" stroke-width="2"/>
+            <text x="462" y="186" text-anchor="middle" font-family="Heebo,sans-serif" font-weight="800" font-size="22" fill="rgba(255,255,255,.75)">מוכרים</text>
+          </g>
+          <!-- left pan (lower = heavier): קונים -->
+          <g class="scale-pan-l">
+            <path d="M98 92 L78 148 M98 92 L118 148" stroke="rgba(91,175,214,.55)" stroke-width="2"/>
+            <path d="M66 148 A 32 32 0 0 0 130 148 Z" fill="#122440" stroke="#5BAFD6" stroke-width="2.5"/>
+            <circle cx="98" cy="136" r="17" fill="#0e1d33" stroke="#5BAFD6" stroke-width="2.5"/>
+            <path d="M92 136 h12 M98 130 v12" stroke="#5BAFD6" stroke-width="2.5" stroke-linecap="round"/>
+            <text x="98" y="186" text-anchor="middle" font-family="Heebo,sans-serif" font-weight="800" font-size="22" fill="#5BAFD6">קונים</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="factors reveal d3">
+        <div class="fcol win">
+          <h4><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg>מה שמחזק את הקונה היום</h4>
+          <ul>
+            <li>מלאי שיא של דירות חדשות שלא נמכרו — הקבלנים צריכים למכור</li>
+            <li>מבצעי מימון והנחות שלא היינו רואים בשוק חם</li>
+            <li>ריבית גבוהה מסננת את המתחרים — פחות קונים מולך בעסקה</li>
+            <li>מרחב משא ומתן אמיתי, גם ביד שנייה</li>
+          </ul>
+        </div>
+        <div class="fcol">
+          <h4><svg viewBox="0 0 24 24"><path d="M3 21h18M5 21V8l7-5 7 5v13"/></svg>מה שעוד תומך במוכרים</h4>
+          <ul>
+            <li>ביקוש בסיסי חזק — דמוגרפיה צומחת וקצב בנייה שלא מדביק אותה</li>
+            <li>קרקע זמינה במרכז נגמרת — ההיצע העתידי מוגבל</li>
+            <li>ירידת ריבית צפויה תחזיר קונים רבים לשוק בבת אחת</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="verdict reveal d4">
+        <div class="v-eyebrow">מה אני חושב</div>
+        <h3>חלון של קונים — אצל מוכרים לחוצים. וזה חלון, לא דלת.</h3>
+        <p>בטווח הקצר זה שוק של קונים: מלאי גבוה, קבלנים לחוצים וריבית שמרחיקה את המתחרים — בדיוק התנאים שבהם עושים עסקה טובה. אבל הכוחות הארוכים — דמוגרפיה, מחסור בקרקע וריבית שתרד — עובדים לטובת מי שכבר מחזיק בנכס. לכן ההזדמנות היא לא "לחכות שיירד עוד", אלא לקנות נכון עכשיו, בתנאים של קונה — ולפגוש את השוק הבא כמוכר.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 07 · CLOSING ============ -->
+  <section class="slide slide--dark2 cover">
+    <div class="slide__inner">
+      <h2 class="headline reveal d1">אסטרטגיה, <span class="accent">לא מזל.</span></h2>
+      <img class="close-photo reveal d2" src="assets/amit.jpg" alt="עמית לזר" onerror="this.style.display='none'">
+      <div class="sociallinks reveal d3" style="margin-top:clamp(44px,7vh,84px)">
+        <a class="slogo" href="https://www.instagram.com/amitlazar12/" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41-.56-.22-.96-.48-1.38-.9-.42-.42-.68-.82-.9-1.38-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41 1.27-.06 1.65-.07 4.85-.07M12 0C8.74 0 8.33.01 7.05.07 5.78.13 4.9.33 4.14.63c-.79.31-1.46.72-2.12 1.38C1.35 2.67.94 3.34.63 4.14.33 4.9.13 5.78.07 7.05.01 8.33 0 8.74 0 12s.01 3.67.07 4.95c.06 1.27.26 2.15.56 2.91.31.79.72 1.46 1.38 2.12.66.66 1.33 1.07 2.12 1.38.76.3 1.64.5 2.91.56C8.33 23.99 8.74 24 12 24s3.67-.01 4.95-.07c1.27-.06 2.15-.26 2.91-.56.79-.31 1.46-.72 2.12-1.38.66-.66 1.07-1.33 1.38-2.12.3-.76.5-1.64.56-2.91.06-1.28.07-1.69.07-4.95s-.01-3.67-.07-4.95c-.06-1.27-.26-2.15-.56-2.91-.31-.79-.72-1.46-1.38-2.12-.66-.66-1.33-1.07-2.12-1.38-.76-.3-1.64-.5-2.91-.56C15.67.01 15.26 0 12 0z"/><path d="M12 5.84A6.16 6.16 0 1 0 18.16 12 6.16 6.16 0 0 0 12 5.84zm0 10.16A4 4 0 1 1 16 12a4 4 0 0 1-4 4z"/><circle cx="18.41" cy="5.59" r="1.44"/></svg>
+        </a>
+        <a class="slogo" href="https://chat.whatsapp.com/JIEHtBx5bZN70Z1gSKQRdf" target="_blank" rel="noopener" aria-label="WhatsApp">
+          <svg viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.043zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        </a>
+        <a class="slogo slogo--logo" href="https://www.duplerealestate.com/" target="_blank" rel="noopener" aria-label="אתר החברה"
+           style="filter:drop-shadow(0 0 20px rgba(91,175,214,.85))">
+          <img src="assets/logo.png" alt="DUPLE" onerror="this.src='assets/logo-white.png'">
+        </a>
+        <a class="slogo" href="https://open.spotify.com/show/0TqTuVTqhpzXmhJ7E5A2x3" target="_blank" rel="noopener" aria-label="Spotify">
+          <svg viewBox="0 0 24 24"><path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.52 17.34c-.24.36-.66.48-1.02.24-2.82-1.74-6.36-2.1-10.56-1.14-.42.12-.78-.18-.9-.54-.12-.42.18-.78.54-.9 4.56-1.02 8.52-.6 11.64 1.32.42.18.48.66.3 1.02zm1.44-3.3c-.3.42-.84.6-1.26.3-3.24-1.98-8.16-2.58-11.94-1.38-.48.12-1.02-.12-1.14-.6-.12-.48.12-1.02.6-1.14 4.38-1.32 9.78-.66 13.5 1.62.42.18.54.78.24 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.3c-.6.18-1.2-.18-1.38-.72-.18-.6.18-1.2.72-1.38 4.26-1.26 11.28-1.02 15.72 1.56.54.3.72 1.02.42 1.56-.3.42-1.02.66-1.56.36z"/></svg>
+        </a>
+        <a class="slogo" href="https://www.youtube.com/@Lazar.Entrepreneur" target="_blank" rel="noopener" aria-label="YouTube">
+          <svg viewBox="0 0 24 24"><path d="M23.5 6.2a3.02 3.02 0 0 0-2.12-2.14C19.5 3.55 12 3.55 12 3.55s-7.5 0-9.38.51A3.02 3.02 0 0 0 .5 6.2C0 8.08 0 12 0 12s0 3.92.5 5.8a3.02 3.02 0 0 0 2.12 2.14c1.88.51 9.38.51 9.38.51s7.5 0 9.38-.51a3.02 3.02 0 0 0 2.12-2.14C24 15.92 24 12 24 12s0-3.92-.5-5.8zM9.6 15.6V8.4l6.2 3.6-6.2 3.6z"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+/* ====================================================================
+   DUPLE MACRO DECK ENGINE
+   ==================================================================== */
+(function(){
+  const deck   = document.getElementById('deck');
+  const slides = Array.from(deck.querySelectorAll('.slide'));
+  const bar    = document.getElementById('progressBar');
+  const curEl  = document.getElementById('cur');
+  const totEl  = document.getElementById('tot');
+  const reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  let idx = 0;
+  totEl.textContent = String(slides.length).padStart(2,'0');
+
+  /* ---- count-up (supports decimals) ---- */
+  function countUp(el){
+    if(el.dataset.done) return; el.dataset.done='1';
+    const target=parseFloat(el.dataset.count);
+    const dec=parseInt(el.dataset.decimals||'0',10);
+    const suffix=el.dataset.suffix||'';
+    const prefix=el.dataset.prefix||'';
+    const fmt=v=>dec? v.toFixed(dec) : Math.round(v).toLocaleString('en-US');
+    if(reduce){ el.textContent=prefix+fmt(target)+suffix; return; }
+    const dur=1100, t0=performance.now();
+    function tick(now){
+      const p=Math.min(1,(now-t0)/dur);
+      const e=1-Math.pow(1-p,3);
+      el.textContent=prefix+fmt(target*e)+suffix;
+      if(p<1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ---- GDP bar animation ---- */
+  function runGdpBar(s){
+    s.querySelectorAll('.gdpseg').forEach(seg=>{ seg.style.width=seg.dataset.w+'%'; });
+  }
+
+  /* ---- activate slide ---- */
+  function activate(i){
+    const s=slides[i];
+    s.classList.add('active');
+    s.querySelectorAll('[data-count]').forEach(countUp);
+    if(s.querySelector('.gdpbar')) runGdpBar(s);
+  }
+
+  /* ---- observer drives active state + counter ---- */
+  const _ratios=new Map();
+  const io=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>_ratios.set(e.target,e.intersectionRatio));
+    let best=null,bestR=0;
+    slides.forEach(s=>{const r=_ratios.get(s)||0; if(r>bestR){bestR=r;best=s;}});
+    if(best && bestR>0.12){
+      idx=slides.indexOf(best);
+      activate(idx);
+      curEl.textContent=String(idx+1).padStart(2,'0');
+      bar.style.width=((idx)/(slides.length-1)*100)+'%';
+    }
+  },{root:deck,threshold:[0,0.12,0.3,0.55,0.8,1]});
+  slides.forEach(s=>io.observe(s));
+
+  /* ---- navigation ---- */
+  function go(i){ i=Math.max(0,Math.min(slides.length-1,i)); slides[i].scrollIntoView({behavior:reduce?'auto':'smooth'}); }
+  document.getElementById('next').addEventListener('click',()=>go(idx+1));
+  document.getElementById('prev').addEventListener('click',()=>go(idx-1));
+  window.addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'||e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(idx+1);}
+    else if(e.key==='ArrowRight'||e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();go(idx-1);}
+    else if(e.key==='Home'){go(0);} else if(e.key==='End'){go(slides.length-1);}
+  });
+
+  /* ---- wheel: one gesture = one slide; tall slides scroll inside first ---- */
+  let lockUntil=0;
+  deck.addEventListener('wheel',e=>{
+    const now=performance.now();
+    const s=slides[idx];
+    const sTop=s.offsetTop, sBot=sTop+s.offsetHeight;
+    const vTop=deck.scrollTop, vBot=vTop+deck.clientHeight;
+    const down=e.deltaY>0;
+    // let a taller-than-viewport slide scroll natively until its edge
+    if((down && sBot>vBot+4) || (!down && sTop<vTop-4)) return;
+    e.preventDefault();
+    if(now<lockUntil) return;
+    lockUntil=now+750;
+    go(idx+(down?1:-1));
+  },{passive:false});
+
+  /* ====================================================================
+     SLIDE 3 — rate scenario toggle
+     ==================================================================== */
+  const rateToggle=document.getElementById('rateToggle');
+  const rateChain=document.getElementById('rateChain');
+  function applyScenario(root,scen){
+    root.querySelectorAll('[data-'+scen+']').forEach(el=>{ el.textContent=el.dataset[scen]; });
+    root.querySelectorAll('[data-updir]').forEach(el=>{
+      const map={};
+      el.dataset.updir.split('|').forEach(pair=>{ const [k,v]=pair.split(':'); map[k]=v; });
+      if(map[scen]!==undefined){
+        // slide-3 style: text value | slide-4 style: up/down arrow class
+        if(map[scen]==='up'||map[scen]==='down'){
+          el.textContent=map[scen]==='up'?'↑':'↓';
+          el.classList.toggle('up',map[scen]==='up');
+          el.classList.toggle('down',map[scen]==='down');
+        }else{
+          el.textContent=map[scen];
+          el.classList.toggle('up',map[scen].includes('↑')||map[scen]==='תנופה');
+          el.classList.toggle('down',map[scen].includes('↓'));
+        }
+      }
+    });
+  }
+  if(rateToggle){
+    rateToggle.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        rateToggle.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        applyScenario(rateChain,btn.dataset.scen);
+      });
+    });
+    applyScenario(rateChain,'up');
+  }
+
+  /* ====================================================================
+     SLIDE 4 — FX scenario toggle + seesaw
+     ==================================================================== */
+  const fxToggle=document.getElementById('fxToggle');
+  const fxEffects=document.getElementById('fxEffects');
+  const fxBeam=document.getElementById('fxBeam');
+  const fxRate=document.getElementById('fxRate');
+  const fxRateLbl=document.getElementById('fxRateLbl');
+  function applyFx(scen){
+    applyScenario(fxEffects,scen);
+    if(scen==='weak'){
+      fxBeam.style.transform='rotate(8deg)';         /* $ pan up = dollar strong */
+      fxRate.textContent='$1 = ₪3.90';
+      fxRateLbl.textContent='הדולר מתחזק מול השקל';
+    }else{
+      fxBeam.style.transform='rotate(-8deg)';
+      fxRate.textContent='$1 = ₪3.20';
+      fxRateLbl.textContent='השקל מתחזק מול הדולר';
+    }
+  }
+  if(fxToggle){
+    fxToggle.querySelectorAll('button').forEach(btn=>{
+      btn.addEventListener('click',()=>{
+        fxToggle.querySelectorAll('button').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFx(btn.dataset.scen);
+      });
+    });
+    applyFx('weak');
+  }
+
+  /* ====================================================================
+     SLIDE 5 — crisis chart hover tooltip
+     ==================================================================== */
+  const chart=document.getElementById('crisisChart');
+  if(chart){
+    const svg=chart.querySelector('svg');
+    const ptsG=document.getElementById('crisisPts');
+    const tip=document.getElementById('crisisTip');
+    // (x,y,label,index-value) along the line
+    const pts=[[40,128,'שגרה',100],[160,124,'שגרה',102],[215,122,'פרוץ המשבר',103],
+      [285,252,'הלם',45],[330,258,'קיפאון',42],[420,222,'הפשרה',58],
+      [510,148,'התאוששות',92],[600,96,'תנופה',115],[690,76,'שחרור ביקוש',124],
+      [790,78,'רמה חדשה',123],[900,76,'רמה חדשה',124]];
+    pts.forEach(([x,y,lbl,v])=>{
+      const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',16);
+      c.setAttribute('fill','transparent');c.style.cursor='crosshair';
+      const dot=document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('cx',x);dot.setAttribute('cy',y);dot.setAttribute('r',4.5);
+      dot.setAttribute('fill','#0a1628');dot.setAttribute('stroke','#5BAFD6');
+      dot.setAttribute('stroke-width','2');dot.style.opacity='0';dot.style.transition='opacity .15s';
+      ptsG.appendChild(dot);ptsG.appendChild(c);
+      c.addEventListener('mouseenter',()=>{
+        dot.style.opacity='1';
+        tip.innerHTML=lbl+' · <span class="num">'+v+'</span>';
+        const r=chart.getBoundingClientRect(), sr=svg.getBoundingClientRect();
+        const sx=sr.width/940;
+        tip.style.left=(x*sx - 40)+'px';
+        tip.style.top =(y*(sr.height/360) - 44)+'px';
+        tip.style.opacity='1';
+      });
+      c.addEventListener('mouseleave',()=>{ dot.style.opacity='0'; tip.style.opacity='0'; });
+    });
+  }
+
+  /* boot — #3 in the URL jumps straight to slide 4 (0-based: #0..#6) */
+  const h=parseInt((location.hash||'').slice(1),10);
+  function jump(){
+    if(!isNaN(h) && slides[h]){ deck.scrollTop=slides[h].offsetTop; idx=h; activate(h); }
+    else activate(0);
+  }
+  jump();
+  // re-align after fonts/images settle (layout heights shift)
+  window.addEventListener('load',()=>{ requestAnimationFrame(jump); });
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>requestAnimationFrame(jump));
+  if(!isNaN(h)) [200,600,1200,2400].forEach(t=>setTimeout(jump,t));
+})();
+</script>
+</body>
+</html>
