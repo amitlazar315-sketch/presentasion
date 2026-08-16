@@ -666,7 +666,7 @@ body.glmap-on .maphint{pointer-events:none}
 /* deal title — always a single line; the status chip sits on the banner so the
    title gets the full card width */
 .hb-toprow{display:block}
-.hb-title{display:block;font-size:15px;font-weight:800;color:#1e293b;line-height:1.4;
+.hb-title{display:block;text-align:center;font-size:15px;font-weight:800;color:#1e293b;line-height:1.4;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hb-status{position:absolute;top:10px;inset-inline-end:10px;z-index:2;
   font-size:10px;font-weight:800;border-radius:999px;padding:3px 9px;border:1px solid;
@@ -713,11 +713,10 @@ body.glmap-on .maphint{pointer-events:none}
    nowrap width and painted straight over the next column. Leaving the automatic
    minimum in place makes a track physically unable to be narrower than what it
    holds, so columns can never collide. */
+/* every column centred inside its own track, matching the centred title above —
+   the three labels and their numbers sit on one shared axis instead of the outer
+   two being pushed flush to the card edges */
 .hb-stats .st{display:flex;flex-direction:column;gap:.25em;align-items:center;text-align:center;position:relative;min-width:max-content}
-/* the row spans the card edge-to-edge: first stat flush to the card's start,
-   last flush to its end, middle centred — so the block aligns with the title */
-.hb-stats .st:first-child{align-items:flex-start;text-align:start}
-.hb-stats .st:last-child{align-items:flex-end;text-align:end}
 .hb-stats .st+.st::before{content:"";position:absolute;inset-inline-start:-5px;top:12%;bottom:12%;width:1px;background:#e8eef5}
 .hb-stats .st small{font-size:.72em;font-weight:700;color:#475569;letter-spacing:.01em;white-space:nowrap}
 .hb-stats .st b{font-family:var(--num);font-size:1.06em;font-weight:800;color:#1f3348;white-space:nowrap}
