@@ -686,6 +686,12 @@ body.glmap-on .maphint{pointer-events:none}
 /* video modal — Drive/YouTube player inside the deck */
 .vwrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden}
 .vwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.vwrap [hidden]{display:none}
+.vprivate{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:16px;text-align:center;padding:24px;color:#dbe7f2;
+  background:radial-gradient(circle at 50% 40%,#16304f,#06101f 70%)}
+.vprivate svg{width:clamp(38px,4.4vw,52px);height:clamp(38px,4.4vw,52px);color:var(--cyan-brand);opacity:.9}
+.vprivate p{font-size:clamp(16px,1.9vw,23px);font-weight:800;line-height:1.5;max-width:26ch}
 /* .vwrap is positioned and comes after the close button in the DOM, so without
    this the × paints underneath the player and can't be clicked */
 #videoModal .modal__close{z-index:5;background:rgba(255,255,255,.92);color:#1f3348}
@@ -1444,7 +1450,14 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
 <div class="modal" id="videoModal">
   <div class="modal__card" style="max-width:1040px;padding:14px;background:#06101f">
     <button class="modal__close" id="videoClose" aria-label="סגירה">×</button>
-    <div class="vwrap"><iframe id="videoFrame" title="סרטון עסקה" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
+    <div class="vwrap">
+      <iframe id="videoFrame" title="סרטון עסקה" allow="autoplay; fullscreen" allowfullscreen></iframe>
+      <!-- shown instead of the player when the Drive file isn't shared publicly -->
+      <div class="vprivate" id="videoPrivate" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        <p>סרטון זה פרטי ומשויך ללקוח</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1867,6 +1880,9 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
         });
       });
       fitStats();
+      // start the "is this Drive file public?" probe now, so the answer is
+      // already cached by the time an investor clicks the chip
+      if(window.__probeVideo) LIST.forEach(d=>{ if(d.video) window.__probeVideo(d.video); });
     }
     // column widths change with the viewport (4 → 3 → 2 → 1 up), so re-fit
     let fitT; addEventListener('resize',()=>{ clearTimeout(fitT); fitT=setTimeout(fitStats,120); });
@@ -1903,15 +1919,55 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
      Anything else (a direct mp4, an already-embeddable URL) is used as-is. */
   const vModal=document.getElementById('videoModal');
   const vFrame=document.getElementById('videoFrame');
+  const vPriv=document.getElementById('videoPrivate');
+  const driveId=u=>{ const m=/drive\.google\.com\/file\/d\/([^/?#]+)/.exec(u)||/drive\.google\.com\/[^]*[?&]id=([^&#]+)/.exec(u); return m?m[1]:null; };
   function embedUrl(u){
-    const drive=/drive\.google\.com\/file\/d\/([^/?#]+)/.exec(u);
-    if(drive) return 'https://drive.google.com/file/d/'+drive[1]+'/preview';
+    const id=driveId(u);
+    if(id) return 'https://drive.google.com/file/d/'+id+'/preview';
     const yt=/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/.exec(u);
     if(yt) return 'https://www.youtube.com/embed/'+yt[1];
     return u;
   }
-  function openVideo(url){ if(!url) return; vFrame.src=embedUrl(url); vModal.classList.add('open'); lockDeck(); }
-  function closeVideo(){ if(!vModal.classList.contains('open')) return; vModal.classList.remove('open'); vFrame.src='about:blank'; unlockDeck(); }
+  /* Is this Drive file shared with anyone-with-the-link?
+     The player iframe is cross-origin so we can't ask it. Instead probe the
+     thumbnail: a public file returns a JPEG (the <img> loads), a restricted one
+     redirects to the Google sign-in page — HTML, which fails to decode as an
+     image and fires onerror. Cached per file id and prefetched when the cards
+     render, so a click almost always resolves instantly. */
+  const vProbe=new Map();
+  function isShared(url){
+    const id=driveId(url);
+    if(!id) return Promise.resolve(true);   // not a Drive link — nothing to check
+    if(!vProbe.has(id)) vProbe.set(id,new Promise(done=>{
+      const img=new Image();
+      // Drive refuses hotlinked thumbnails when a Referer is sent, which would
+      // fail every file and mark even public videos private
+      img.referrerPolicy='no-referrer';
+      img.onload=()=>done(img.naturalWidth>0);
+      img.onerror=()=>done(false);
+      img.src='https://drive.google.com/thumbnail?id='+id+'&sz=w320';
+    }));
+    return vProbe.get(id);
+  }
+  window.__probeVideo=isShared;   // used by the deal cards to warm the cache
+  let vSeq=0;
+  function openVideo(url){
+    if(!url) return;
+    const token=++vSeq;
+    vFrame.hidden=true; vPriv.hidden=true;   // neither state until we know which
+    vModal.classList.add('open'); lockDeck();
+    isShared(url).then(ok=>{
+      if(token!==vSeq || !vModal.classList.contains('open')) return;  // superseded
+      if(ok){ vFrame.hidden=false; vFrame.src=embedUrl(url); }
+      else  { vPriv.hidden=false; }
+    });
+  }
+  function closeVideo(){
+    if(!vModal.classList.contains('open')) return;
+    vSeq++;                                   // cancel any in-flight probe
+    vModal.classList.remove('open'); vFrame.src='about:blank';
+    vFrame.hidden=true; vPriv.hidden=true; unlockDeck();
+  }
   document.getElementById('videoClose').addEventListener('click',closeVideo);
   vModal.addEventListener('click',e=>{ if(e.target===vModal) closeVideo(); });
   window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeVideo(); });
