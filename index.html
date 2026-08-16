@@ -86,11 +86,13 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   overscroll-behavior:contain;  /* don't chain scroll to the parent page */
 }
 #deck::-webkit-scrollbar{display:none}
-/* Touch devices (phones/tablets): native scroll with a gentle proximity snap —
-   you can scroll through a whole tall slide and it only snaps near the edges. */
+/* Touch devices (phones/tablets): plain native scrolling, NO snap at all.
+   Phone slides are routinely taller than the viewport, and proximity snap kept
+   dragging the scroll back toward a slide edge mid-gesture — the deck "stuck"
+   between two pages and refused to settle. Free scroll always settles. */
 @media (hover:none), (pointer:coarse){
-  #deck{scroll-snap-type:y proximity}
-  .slide{scroll-snap-stop:normal}
+  #deck{scroll-snap-type:none}
+  .slide{scroll-snap-align:none;scroll-snap-stop:normal}
 }
 
 .slide{
@@ -689,12 +691,23 @@ body.glmap-on .maphint{pointer-events:none}
 .hb-stats .st.hero .u{color:#4ab27a}
 .hb-stats bdi{direction:ltr;unicode-bidi:isolate}
 
+/* the overlay itself never scrolls or pans — only the card inside it does, so an
+   open deal stays pinned instead of drifting sideways under your finger */
 .modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:clamp(16px,3vw,40px);
-  background:rgba(5,12,24,.78);backdrop-filter:blur(7px)}
+  background:rgba(5,12,24,.78);backdrop-filter:blur(7px);
+  overflow:hidden;overscroll-behavior:contain}
 .modal.open{display:flex;animation:fadeUp .3s ease}
 .modal__card{background:linear-gradient(180deg,#fff,#f4f8fb);color:var(--ink);border-radius:24px;
-  max-width:920px;width:100%;max-height:90vh;overflow-y:auto;padding:clamp(24px,3vw,44px);position:relative;
+  max-width:920px;width:100%;max-height:90vh;overflow-y:auto;overflow-x:hidden;padding:clamp(24px,3vw,44px);position:relative;
+  touch-action:pan-y;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
   box-shadow:0 40px 120px rgba(0,0,0,.5)}
+/* business-plan modal (CRM investor view in an iframe) — was inline on the
+   element, which the phone media query below could not override */
+.plancard{width:min(1220px,97vw);max-width:none;height:93vh;max-height:93vh;
+  padding:10px;background:#06101f;display:flex;flex-direction:column;overflow:hidden}
+/* deck frozen behind an open modal — belt and braces with the JS lock.
+   The modals live outside #deck, so freezing it cannot block their scrolling. */
+body.modal-open #deck{overflow:hidden;touch-action:none}
 .modal__card::-webkit-scrollbar{width:8px}
 .modal__card::-webkit-scrollbar-thumb{background:var(--hairline-2);border-radius:8px}
 .modal__close{position:absolute;top:16px;left:16px;width:42px;height:42px;border-radius:50%;background:var(--cyan-08);
@@ -754,40 +767,6 @@ body.glmap-on .maphint{pointer-events:none}
 /* extra top room so the "אנחנו כאן" flag clears the heading (all deals) */
 .modal__card .timeline{margin-top:clamp(80px,10vh,104px)}
 .modal__card .rprocess{margin-top:clamp(48px,6.5vh,66px)}
-
-/* ====================================================================
-   COMPONENT — Big boxes (business plans)
-   ==================================================================== */
-.bigboxes{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2vw,28px);margin-top:clamp(22px,3.5vh,40px)}
-.bigbox{border:1px solid var(--hairline);border-radius:22px;min-height:clamp(210px,32vh,300px);
-  display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:12px;
-  background:var(--cyan-08);padding:clamp(24px,3vw,40px);transition:.3s;text-decoration:none;color:inherit}
-.bigbox:hover{transform:translateY(-5px);border-color:var(--cyan-brand);box-shadow:var(--glow)}
-.bigbox .bb-ic{font-size:clamp(38px,4.4vw,54px)}
-.bigbox h3{font-size:clamp(20px,2.2vw,30px);font-weight:800}
-.bigbox p{font-size:clamp(14px,1.2vw,16.5px);color:var(--muted);max-width:34ch;line-height:1.5}
-.bigbox .bb-cta{margin-top:6px;font-size:14px;font-weight:800;color:var(--cyan-brand);display:flex;align-items:center;gap:7px}
-
-/* video cards (business-plan analysis videos) */
-.videocard{position:relative;display:block;border-radius:22px;overflow:hidden;text-decoration:none;cursor:pointer;
-  aspect-ratio:16/10;border:1px solid var(--hairline-2);background:linear-gradient(150deg,var(--navy-2),var(--navy-deep));
-  transition:transform .3s ease, border-color .3s ease, box-shadow .3s ease}
-.videocard:hover{transform:translateY(-5px);border-color:var(--cyan-brand);box-shadow:var(--glow)}
-.videocard .vthumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.videocard::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,22,40,.20),rgba(10,22,40,.72))}
-.videocard .vplay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:3;
-  width:clamp(66px,7vw,96px);height:clamp(66px,7vw,96px);border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,#1c4a86,var(--navy-deep) 75%);border:2px solid var(--cyan-brand);
-  display:grid;place-items:center;box-shadow:0 14px 40px rgba(10,22,40,.6),0 0 0 10px rgba(91,175,214,.12);transition:.3s}
-.videocard:hover .vplay{transform:translate(-50%,-50%) scale(1.08);box-shadow:0 18px 50px rgba(10,22,40,.65),0 0 0 14px rgba(91,175,214,.2)}
-.videocard .vplay::before{content:"";margin-inline-start:7px;border-style:solid;
-  border-width:15px 0 15px 24px;border-color:transparent transparent transparent #fff}
-.videocard .vcap{position:absolute;right:20px;bottom:18px;z-index:3;color:#fff;font-weight:800;
-  font-size:clamp(15px,1.5vw,21px);text-shadow:0 2px 12px rgba(0,0,0,.6)}
-
-/* video modal */
-.vwrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:20px;overflow:hidden}
-.vwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 
 /* plans — Single / Double (classic two columns) */
 .plans2{display:grid;grid-template-columns:1fr 1fr;gap:clamp(16px,2.2vw,30px);margin-top:clamp(12px,1.8vh,24px);align-items:stretch}
@@ -881,7 +860,7 @@ body.glmap-on .maphint{pointer-events:none}
   .hubgrid{grid-template-columns:repeat(2,1fr)}
   .grid-4{grid-template-columns:repeat(2,1fr)}
   .grid-3{grid-template-columns:repeat(2,1fr)}
-  .deal-grid,.split,.engines,.dash,.maplayout,.bigboxes,.dealgrid{grid-template-columns:1fr}
+  .deal-grid,.split,.engines,.dash,.maplayout,.dealgrid{grid-template-columns:1fr}
   .matrix{grid-template-columns:repeat(2,1fr)}
   .team{grid-template-columns:repeat(2,1fr)}
   .invtabs{grid-template-columns:1fr}
@@ -958,15 +937,26 @@ body.glmap-on .maphint{pointer-events:none}
   .reveal{opacity:1 !important;transform:none !important}
   /* one column for all grids/rows */
   .grid-2,.grid-3,.grid-4,.matrix,.team,.engines,.rprocess,.plans2,
-  .split,.invtabs,.deal-grid,.dash,.bigboxes{grid-template-columns:1fr}
-  /* slide 8 deal cards — two-up grid, shorter scroll area */
-  .hubgrid{grid-template-columns:1fr 1fr;gap:10px}
-  .hubscroll{max-height:58vh}
-  .hb-title{font-size:12.5px}
-  .hb-stats .st small{font-size:9.5px}
-  .hb-stats .st b{font-size:13px}
-  .hb-stats.sm .st b{font-size:11.5px}
-  .hb-stats.xs .st b{font-size:10px}
+  .split,.invtabs,.deal-grid,.dash{grid-template-columns:1fr}
+  /* slide 8 deal cards — ONE per row on a phone. Two-up left the card too narrow
+     for a one-line title and the stat row collided with its own hairlines.
+     The inner scroll box is dropped too: a nested scroller inside the deck is
+     what made the page feel stuck, so the slide just grows and the deck scrolls. */
+  #deals .slide__inner--wide{max-width:100%}
+  .hubscroll{max-height:none;overflow:visible;padding:0;margin-top:16px}
+  .hubgrid{grid-template-columns:1fr;gap:14px}
+  /* shorter banner so a full card still fits the screen at one-per-row */
+  .hb-banner{padding-bottom:34%}
+  .hb-banner .bicon{width:32px;height:32px}
+  .hb-info{padding:12px 14px 13px}
+  .hb-title{font-size:14px}
+  .hb-stats{column-gap:8px;margin-top:10px;padding-top:10px}
+  .hb-stats .st small{font-size:11px}
+  .hb-stats .st b{font-size:16px}
+  .hb-stats.sm .st b{font-size:14.5px}
+  .hb-stats.xs .st b{font-size:13px}
+  /* no lift on touch — there is no hover, and the transform caused sideways drift */
+  .hubcard:hover{transform:none;box-shadow:0 6px 18px rgba(10,22,40,.10)}
   /* typography */
   h1.title{font-size:clamp(34px,10vw,54px)}
   h2.headline{font-size:clamp(25px,7.4vw,40px)}
@@ -995,6 +985,19 @@ body.glmap-on .maphint{pointer-events:none}
   .rcol.current .rnode{transform:scale(1.3) !important}
   .rflag{display:none}
   .rbody{margin-top:0;flex:1}
+  /* deal / plan modals on a phone — fill the screen and make sure NOTHING inside
+     is wider than the card; an overflowing child is what let the open deal slide
+     sideways while scrolling */
+  .modal{padding:8px}
+  .modal__card{max-height:95vh;padding:20px 14px 22px;border-radius:18px}
+  .modal__card > *{max-width:100%}
+  .modal__card img,.modal__card iframe{max-width:100%}
+  .modal__close{top:10px;left:10px;width:38px;height:38px;font-size:21px}
+  .modal__grid{grid-template-columns:1fr 1fr;gap:8px}
+  .modal__photos{grid-template-columns:1fr;gap:10px}
+  .modal__photos .imgbox{min-height:clamp(180px,30vh,240px)}
+  .modal__renders{grid-template-columns:1fr}
+  #planModal .modal__card{width:100%;height:96vh;max-height:96vh;padding:6px}
   /* chrome */
   .nav-arrows{bottom:16px;left:14px}
   .nav-arrows button{width:42px;height:42px}
@@ -1274,26 +1277,7 @@ body.glmap-on .maphint{pointer-events:none}
     </div>
   </section>
 
-  <!-- ============ 09 · ניתוח תכניות עסקיות ============ -->
-  <section class="slide slide--dark2" data-mode="dark">
-    <div class="slide__inner">
-      <h2 class="headline reveal d1">ניתוח תכניות עסקיות</h2>
-      <div class="bigboxes reveal d3">
-        <a class="videocard" data-vid="1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C" href="https://drive.google.com/file/d/1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C/view?usp=sharing" target="_blank" rel="noopener">
-          <img class="vthumb" src="https://lh3.googleusercontent.com/d/1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C=w1200" referrerpolicy="no-referrer" loading="lazy" alt="סרטון ניתוח עסקה 1" onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id=1ughz6DPAfAo-RFvfSZoSKIhT3I4knC2C&sz=w1200'">
-          <span class="vplay"></span>
-          <span class="vcap">ניתוח עסקה 1</span>
-        </a>
-        <a class="videocard" data-vid="1uUos3do5edVInddBQ6KRKT5t04fazd2l" href="https://drive.google.com/file/d/1uUos3do5edVInddBQ6KRKT5t04fazd2l/view?usp=sharing" target="_blank" rel="noopener">
-          <img class="vthumb" src="https://lh3.googleusercontent.com/d/1uUos3do5edVInddBQ6KRKT5t04fazd2l=w1200" referrerpolicy="no-referrer" loading="lazy" alt="סרטון ניתוח עסקה 2" onerror="this.onerror=null;this.src='https://drive.google.com/thumbnail?id=1uUos3do5edVInddBQ6KRKT5t04fazd2l&sz=w1200'">
-          <span class="vplay"></span>
-          <span class="vcap">ניתוח עסקה 2</span>
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============ 10 · אופי התהליך ============ -->
+  <!-- ============ 09 · אופי התהליך ============ -->
   <section class="slide slide--dark" data-mode="dark">
     <div class="slide__inner">
       <h2 class="headline reveal d1">איך התהליך מתבצע</h2>
@@ -1306,7 +1290,7 @@ body.glmap-on .maphint{pointer-events:none}
     </div>
   </section>
 
-  <!-- ============ 11 · ליווי אסטרטגי · Single / Double ============ -->
+  <!-- ============ 10 · ליווי אסטרטגי · Single / Double ============ -->
   <section class="slide slide--light" data-mode="light">
     <div class="slide__inner">
       <h2 class="headline reveal d1">ליווי אסטרטגי להשקעות נדל״ן</h2>
@@ -1367,7 +1351,7 @@ body.glmap-on .maphint{pointer-events:none}
     </div>
   </section>
 
-  <!-- ============ 12 · סיום · אסטרטגיה, לא מזל ============ -->
+  <!-- ============ 11 · סיום · אסטרטגיה, לא מזל ============ -->
   <section class="slide slide--dark2 cover" data-mode="dark">
     <div class="slide__inner">
       <h2 class="headline reveal d1">אסטרטגיה, <span class="accent">לא מזל.</span></h2>
@@ -1410,17 +1394,9 @@ body.glmap-on .maphint{pointer-events:none}
   </div>
 </div>
 
-<!-- ============ VIDEO MODAL ============ -->
-<div class="modal" id="videoModal">
-  <div class="modal__card" style="max-width:1040px;padding:14px;background:#06101f">
-    <button class="modal__close" id="videoClose" aria-label="סגירה">×</button>
-    <div class="vwrap"><iframe id="videoFrame" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
-  </div>
-</div>
-
 <!-- ============ BUSINESS-PLAN MODAL (investor view inside the deck) ============ -->
 <div class="modal" id="planModal">
-  <div class="modal__card" style="width:min(1220px,97vw);max-width:none;height:93vh;max-height:93vh;padding:10px;background:#06101f;display:flex;flex-direction:column">
+  <div class="modal__card plancard">
     <button class="modal__close" id="planClose" aria-label="סגירה">×</button>
     <iframe id="planFrame" title="תוכנית עסקית" style="flex:1;width:100%;border:0;border-radius:12px;background:#0a1628" allow="fullscreen"></iframe>
   </div>
@@ -1564,7 +1540,6 @@ body.glmap-on .maphint{pointer-events:none}
   document.getElementById('prev').addEventListener('click',()=>go(idx-1));
   window.addEventListener('keydown',e=>{
     if(document.getElementById('dealModal').classList.contains('open')) return;
-    if(document.getElementById('videoModal').classList.contains('open')) return;
     if(document.getElementById('mapModal').classList.contains('open')) return;
     if(document.getElementById('planModal').classList.contains('open')) return;
     if(e.key==='ArrowLeft'||e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(idx+1);}
@@ -1663,6 +1638,23 @@ body.glmap-on .maphint{pointer-events:none}
   // force any number range (e.g. 5–7, 400,000–700,000) to LTR: small on left, large on right
   const ltrRange=s=>/\d\s*[–\-]\s*\d/.test(s)
     ? '<span style="unicode-bidi:isolate;direction:ltr;white-space:nowrap">'+s+'</span>' : s;
+  /* ---- modal scroll lock ----
+     While a modal is open the deck behind it must not move. Without this the
+     background kept scrolling under the overlay and the modal appeared to slide
+     side to side. Refcounted so nested/stacked modals unlock only once, and the
+     deck's scroll position is restored so closing doesn't jump you elsewhere. */
+  let lockTop=0, lockN=0;
+  function lockDeck(){
+    if(lockN++) return;
+    lockTop=deck.scrollTop;
+    document.body.classList.add('modal-open');
+  }
+  function unlockDeck(){
+    if(lockN===0 || --lockN) return;
+    document.body.classList.remove('modal-open');
+    deck.scrollTop=lockTop;
+  }
+
   function openDeal(key){
     const d=DEALS[key]; if(!d) return;
     let html='<span class="eyebrow" style="margin-bottom:6px">'+d.type+'</span>'+
@@ -1714,12 +1706,12 @@ body.glmap-on .maphint{pointer-events:none}
         TRACK_TPL[d.track]+'</div>';
     }
     body.innerHTML=html;
-    modal.classList.add('open');
+    modal.classList.add('open'); lockDeck();
     // wire the injected interactive track (same UX as slide 5)
     const mtl=body.querySelector('.timeline'); if(mtl){ buildTimeline(mtl); runTimeline(mtl); }
     const mrp=body.querySelector('.rprocess'); if(mrp){ buildRprocess(mrp, d.entry); }
   }
-  function closeDeal(){ modal.classList.remove('open'); }
+  function closeDeal(){ if(!modal.classList.contains('open')) return; modal.classList.remove('open'); unlockDeck(); }
   document.querySelectorAll('.dealbox').forEach(box=>{
     box.addEventListener('click',()=>openDeal(box.dataset.deal));
   });
@@ -1803,8 +1795,8 @@ body.glmap-on .maphint{pointer-events:none}
   /* ---- business-plan modal: the CRM investor view inside the deck ---- */
   const pModal=document.getElementById('planModal');
   const pFrame=document.getElementById('planFrame');
-  function openPlan(url){ pFrame.src=url; pModal.classList.add('open'); }
-  function closePlan(){ pModal.classList.remove('open'); pFrame.src='about:blank'; }
+  function openPlan(url){ pFrame.src=url; pModal.classList.add('open'); lockDeck(); }
+  function closePlan(){ if(!pModal.classList.contains('open')) return; pModal.classList.remove('open'); pFrame.src='about:blank'; unlockDeck(); }
   document.getElementById('planClose').addEventListener('click',closePlan);
   pModal.addEventListener('click',e=>{ if(e.target===pModal) closePlan(); });
   window.addEventListener('keydown',e=>{ if(e.key==='Escape') closePlan(); });
@@ -1826,8 +1818,8 @@ body.glmap-on .maphint{pointer-events:none}
     function apply(){ img.style.transform='translate('+tx+'px,'+ty+'px) scale('+scale+')'; }
     function reset(){ scale=1;tx=0;ty=0;apply(); }
     function dist(t){ return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY); }
-    function close(){ mm.classList.remove('open'); }
-    map.addEventListener('click',()=>{ if(document.body.classList.contains('glmap-on')) return; reset(); mm.classList.add('open'); });
+    function close(){ if(!mm.classList.contains('open')) return; mm.classList.remove('open'); unlockDeck(); }
+    map.addEventListener('click',()=>{ if(document.body.classList.contains('glmap-on')) return; reset(); mm.classList.add('open'); lockDeck(); });
     document.getElementById('mapClose').addEventListener('click',e=>{ e.stopPropagation(); close(); });
     scroll.addEventListener('click',e=>{ if(e.target.tagName!=='IMG') close(); });
     scroll.addEventListener('touchstart',e=>{
@@ -1844,21 +1836,6 @@ body.glmap-on .maphint{pointer-events:none}
     scroll.addEventListener('wheel',e=>{ e.preventDefault(); scale=clamp(scale*(e.deltaY<0?1.12:0.9)); if(scale===1){tx=0;ty=0;} apply(); },{passive:false});
     window.addEventListener('keydown',e=>{ if(e.key==='Escape' && mm.classList.contains('open')) close(); });
   })();
-
-  /* ---- video cards → inline player modal (slide 09) ---- */
-  const vmodal=document.getElementById('videoModal');
-  const vframe=document.getElementById('videoFrame');
-  function closeVideo(){ vmodal.classList.remove('open'); vframe.src=''; }
-  document.querySelectorAll('.videocard').forEach(v=>{
-    v.addEventListener('click',e=>{
-      e.preventDefault();
-      vframe.src='https://drive.google.com/file/d/'+v.dataset.vid+'/preview';
-      vmodal.classList.add('open');
-    });
-  });
-  document.getElementById('videoClose').addEventListener('click',closeVideo);
-  vmodal.addEventListener('click',e=>{ if(e.target===vmodal) closeVideo(); });
-  window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeVideo(); });
 
   /* ---- strategy-pillar tiles (slide 04) ---- */
   const eb='<span class="eyebrow" style="margin-bottom:6px">';
@@ -1886,7 +1863,7 @@ body.glmap-on .maphint{pointer-events:none}
       blk('שוק קונים מול שוק מוכרים','זיהוי מי בעמדת כוח — וניצול נכון של המו״מ.')
   };
   document.querySelectorAll('.mtile[data-info]').forEach(t=>{
-    t.addEventListener('click',()=>{ body.innerHTML=INFO[t.dataset.info]; modal.classList.add('open'); });
+    t.addEventListener('click',()=>{ body.innerHTML=INFO[t.dataset.info]; modal.classList.add('open'); lockDeck(); });
   });
 
   /* init */
