@@ -1934,20 +1934,35 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
      redirects to the Google sign-in page — HTML, which fails to decode as an
      image and fires onerror. Cached per file id and prefetched when the cards
      render, so a click almost always resolves instantly. */
-  const vProbe=new Map();
+  const vProbe=new Map(), vProbeAll=[];
   function isShared(url){
     const id=driveId(url);
     if(!id) return Promise.resolve(true);   // not a Drive link — nothing to check
-    if(!vProbe.has(id)) vProbe.set(id,new Promise(done=>{
-      const img=new Image();
-      // Drive refuses hotlinked thumbnails when a Referer is sent, which would
-      // fail every file and mark even public videos private
-      img.referrerPolicy='no-referrer';
-      img.onload=()=>done(img.naturalWidth>0);
-      img.onerror=()=>done(false);
-      img.src='https://drive.google.com/thumbnail?id='+id+'&sz=w320';
-    }));
+    if(!vProbe.has(id)){
+      const p=new Promise(done=>{
+        const img=new Image();
+        // Drive refuses hotlinked thumbnails when a Referer is sent, which would
+        // fail every file and mark even public videos private
+        img.referrerPolicy='no-referrer';
+        img.onload=()=>done(img.naturalWidth>0);
+        img.onerror=()=>done(false);
+        img.src='https://drive.google.com/thumbnail?id='+id+'&sz=w320';
+      });
+      vProbe.set(id,p); vProbeAll.push(p);
+    }
     return vProbe.get(id);
+  }
+  /* A failed probe on its own does NOT prove the file is private: Google
+     throttles the thumbnail endpoint per IP and then fails every request, which
+     would label perfectly shareable videos private — a worse lie than the
+     sign-in screen we're replacing. So only claim "private" when some OTHER
+     Drive probe this session succeeded, proving the channel actually works.
+     If nothing got through, fall back to the player and let Drive speak. */
+  function isPrivate(url){
+    return isShared(url).then(ok=>{
+      if(ok) return false;
+      return Promise.all(vProbeAll).then(rs=>rs.some(Boolean));
+    });
   }
   window.__probeVideo=isShared;   // used by the deal cards to warm the cache
   let vSeq=0;
@@ -1956,10 +1971,10 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
     const token=++vSeq;
     vFrame.hidden=true; vPriv.hidden=true;   // neither state until we know which
     vModal.classList.add('open'); lockDeck();
-    isShared(url).then(ok=>{
+    isPrivate(url).then(priv=>{
       if(token!==vSeq || !vModal.classList.contains('open')) return;  // superseded
-      if(ok){ vFrame.hidden=false; vFrame.src=embedUrl(url); }
-      else  { vPriv.hidden=false; }
+      if(priv){ vPriv.hidden=false; }
+      else    { vFrame.hidden=false; vFrame.src=embedUrl(url); }
     });
   }
   function closeVideo(){
