@@ -673,6 +673,23 @@ body.glmap-on .maphint{pointer-events:none}
   box-shadow:0 2px 8px rgba(10,22,40,.18)}
 .hb-status.ok{background:#dcfce7;color:#166534;border-color:#bbf7d0}
 .hb-status.chk{background:#fef9c3;color:#854d0e;border-color:#fde68a}
+/* "סרטון" chip — only on deals the CRM gave a videoUrl. Sits in the opposite
+   banner corner from the status chip and swallows the click so it opens the
+   video instead of the business plan. z-index clears .hb-hover. */
+.hb-video{position:absolute;top:10px;inset-inline-start:10px;z-index:4;
+  display:inline-flex;align-items:center;gap:5px;cursor:pointer;
+  background:rgba(255,255,255,.96);color:#1f3348;border:1px solid rgba(255,255,255,.9);
+  font-size:10px;font-weight:800;border-radius:999px;padding:4px 9px;
+  box-shadow:0 2px 8px rgba(10,22,40,.22);transition:background .2s ease, transform .2s ease}
+.hb-video svg{width:12px;height:12px;flex:none;color:#3476a5}
+.hubcard:hover .hb-video{background:#fff;transform:scale(1.06)}
+/* video modal — Drive/YouTube player inside the deck */
+.vwrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;border-radius:16px;overflow:hidden}
+.vwrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+/* .vwrap is positioned and comes after the close button in the DOM, so without
+   this the × paints underneath the player and can't be clicked */
+#videoModal .modal__close{z-index:5;background:rgba(255,255,255,.92);color:#1f3348}
+#videoModal .modal__close:hover{background:#fff}
 /* stat row — dark-gray label above the number.
    Columns are sized by CONTENT (minmax(max-content,1fr)), not by hand-tuned
    fractions: fixed fr ratios kept starving whichever column happened to hold a
@@ -685,7 +702,12 @@ body.glmap-on .maphint{pointer-events:none}
   column-gap:10px;font-size:16px;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f7}
 .hb-stats.n2{grid-template-columns:repeat(2,minmax(max-content,1fr))}
 .hb-stats.n1{grid-template-columns:minmax(max-content,1fr)}
-.hb-stats .st{display:flex;flex-direction:column;gap:.25em;align-items:center;text-align:center;position:relative;min-width:0}
+/* NO min-width:0 here. It overrides a grid item's automatic minimum size, which
+   let the tracks shrink below their own text — the label/number kept their
+   nowrap width and painted straight over the next column. Leaving the automatic
+   minimum in place makes a track physically unable to be narrower than what it
+   holds, so columns can never collide. */
+.hb-stats .st{display:flex;flex-direction:column;gap:.25em;align-items:center;text-align:center;position:relative;min-width:max-content}
 /* the row spans the card edge-to-edge: first stat flush to the card's start,
    last flush to its end, middle centred — so the block aligns with the title */
 .hb-stats .st:first-child{align-items:flex-start;text-align:start}
@@ -966,8 +988,19 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
   .hb-banner .bicon{width:32px;height:32px}
   .hb-info{padding:12px 14px 13px}
   .hb-title{font-size:14px}
-  /* one font-size drives the whole row (labels + numbers are em-based) */
-  .hb-stats{font-size:15px;column-gap:8px;margin-top:10px;padding-top:10px}
+  /* Phone stat row: tracks are pure max-content and the leftover width goes into
+     the GAPS (space-between), so profit sits flush right, זמן השקעה flush left
+     against the card edge, and equity floats between them. Equal 1fr tracks kept
+     the three groups bunched in the middle of the card, which is what read as
+     overlapping on a narrow screen. A track can never be squeezed below its own
+     text here, so the columns cannot run into each other. */
+  .hb-stats{font-size:15px;grid-template-columns:auto auto auto;
+    justify-content:space-between;column-gap:14px;margin-top:10px;padding-top:10px}
+  .hb-stats.n2{grid-template-columns:auto auto}
+  .hb-stats.n1{grid-template-columns:auto}
+  /* once the gaps stretch, a hairline pinned to a column edge lands nowhere
+     meaningful — the spacing itself separates the groups */
+  .hb-stats .st+.st::before{display:none}
   /* no lift on touch — there is no hover, and the transform caused sideways drift */
   .hubcard:hover{transform:none;box-shadow:0 6px 18px rgba(10,22,40,.10)}
   /* typography */
@@ -1407,6 +1440,14 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
   </div>
 </div>
 
+<!-- ============ VIDEO MODAL (deal video from the CRM) ============ -->
+<div class="modal" id="videoModal">
+  <div class="modal__card" style="max-width:1040px;padding:14px;background:#06101f">
+    <button class="modal__close" id="videoClose" aria-label="סגירה">×</button>
+    <div class="vwrap"><iframe id="videoFrame" title="סרטון עסקה" allow="autoplay; fullscreen" allowfullscreen></iframe></div>
+  </div>
+</div>
+
 <!-- ============ BUSINESS-PLAN MODAL (investor view inside the deck) ============ -->
 <div class="modal" id="planModal">
   <div class="modal__card plancard">
@@ -1555,6 +1596,7 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
     if(document.getElementById('dealModal').classList.contains('open')) return;
     if(document.getElementById('mapModal').classList.contains('open')) return;
     if(document.getElementById('planModal').classList.contains('open')) return;
+    if(document.getElementById('videoModal').classList.contains('open')) return;
     if(e.key==='ArrowLeft'||e.key==='ArrowDown'||e.key==='PageDown'||e.key===' '){e.preventDefault();go(idx+1);}
     else if(e.key==='ArrowRight'||e.key==='ArrowUp'||e.key==='PageUp'){e.preventDefault();go(idx-1);}
     else if(e.key==='Home'){go(0);} else if(e.key==='End'){go(slides.length-1);}
@@ -1740,6 +1782,7 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
     const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
     const BUILDING='<svg class="bicon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></svg>';
     const MAXI='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3476a5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>';
+    const CAM='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>';
     const FALLBACK=[
       {key:'yoseftal',title:'פינוי בינוי | בת ים | יוספטל',city:'בת ים',profit:'1,260,000',equity:'500,000',years:'6–9',img:'assets/deals/yoseftal-new-1.jpg'},
       {key:'einyahav',title:'פינוי בינוי | חולון | עין יהב',city:'חולון',profit:'700,000',equity:'700,000',years:'4–6',img:'assets/deals/einyahav-new-1.jpg'},
@@ -1750,6 +1793,8 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
     const card=d=>{
       // status chip rides on the banner so the title keeps the full card width
       const chip=d.status?'<span class="hb-status '+(d.status==='מאושר'?'ok':'chk')+'">'+esc(d.status)+'</span>':'';
+      // video chip — only when the CRM supplied a videoUrl for this deal
+      const vchip=d.video?'<span class="hb-video" role="button" tabindex="0" aria-label="צפייה בסרטון העסקה">'+CAM+'סרטון</span>':'';
       // uniform branded banner on every card — no property photos
       const banner='<span class="dots"></span>'+BUILDING+
         '<span class="hb-hover"><span>'+MAXI+' צפייה בעסקה</span></span>';
@@ -1762,7 +1807,7 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
       const nCls=st.length===2?' n2':st.length===1?' n1':'';
       const stats=st.length?'<span class="hb-stats'+nCls+'">'+st.join('')+'</span>':'';
       return '<button class="hubcard" data-key="'+esc(d.key)+'" title="'+esc(d.title)+'">'+
-        '<span class="hb-banner">'+banner+chip+'</span>'+
+        '<span class="hb-banner">'+banner+chip+vchip+'</span>'+
         '<span class="hb-info">'+
           '<span class="hb-toprow"><span class="hb-title">'+esc(d.title)+'</span></span>'+stats+
         '</span></button>';
@@ -1773,14 +1818,31 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
        profit range shrinks while its neighbours stay full size, and the three
        stats inside one card always share one size. */
     const BASE=16;
+    /* How wide the row's text really wants to be. Measuring the row's
+       scrollWidth is not enough: the label and number are nowrap, so they can
+       paint outside a squeezed column while the row itself still reports as
+       fitting. Measure the text boxes themselves. */
+    function rowNeeds(row){
+      const sts=[...row.querySelectorAll('.st')];
+      const gap=parseFloat(getComputedStyle(row).columnGap)||0;
+      let need=gap*Math.max(0,sts.length-1);
+      sts.forEach(st=>{
+        let w=0;
+        st.querySelectorAll('small,b').forEach(el=>{
+          w=Math.max(w, el.getBoundingClientRect().width, el.scrollWidth);
+        });
+        need+=w;
+      });
+      return need;
+    }
     function fitStats(){
       grid.querySelectorAll('.hb-stats').forEach(row=>{
         row.style.fontSize='';   // back to the stylesheet value before measuring
         const base=parseFloat(getComputedStyle(row).fontSize)||BASE;
         let px=base;
-        // step down 1px at a time; floor at 72% so it never becomes unreadable
-        const min=base*0.72;
-        while(row.scrollWidth>row.clientWidth+1 && px>min){
+        // step down 1px at a time; floor at 68% so it never becomes unreadable
+        const min=base*0.68;
+        while(rowNeeds(row)>row.clientWidth+0.2 && px>min){
           px-=1;
           row.style.fontSize=px+'px';
         }
@@ -1789,11 +1851,21 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
     function show(list){
       LIST=list;
       grid.innerHTML=LIST.map(card).join('');
-      grid.querySelectorAll('.hubcard').forEach((el,i)=>el.addEventListener('click',()=>{
-        const d=LIST[i];
-        // business plans open INSIDE the deck (iframe modal) — the investor never leaves
-        if(d.url) openPlan(d.url); else openDeal(d.key);
-      }));
+      grid.querySelectorAll('.hubcard').forEach((el,i)=>{
+        el.addEventListener('click',e=>{
+          const d=LIST[i];
+          // the video chip wins over the rest of the card
+          if(d.video && e.target.closest('.hb-video')) return openVideo(d.video);
+          // business plans open INSIDE the deck (iframe modal) — the investor never leaves
+          if(d.url) openPlan(d.url); else openDeal(d.key);
+        });
+        // the chip is a span inside a button (nested buttons are invalid), so it
+        // needs its own keyboard activation
+        const vc=el.querySelector('.hb-video');
+        if(vc) vc.addEventListener('keydown',e=>{
+          if(e.key==='Enter'||e.key===' '){ e.preventDefault(); e.stopPropagation(); openVideo(LIST[i].video); }
+        });
+      });
       fitStats();
     }
     // column widths change with the viewport (4 → 3 → 2 → 1 up), so re-fit
@@ -1817,12 +1889,32 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
           years:(p.investmentYearsMin!=null&&p.investmentYearsMax!=null)
             ?(p.investmentYearsMin===p.investmentYearsMax?String(p.investmentYearsMax):p.investmentYearsMin+'–'+p.investmentYearsMax)
             :(p.investmentYears?String(p.investmentYears):null),
-          img:p.cover||null
+          img:p.cover||null,
+          video:p.videoUrl||null
         }));
         if(live.length){ show(live); document.dispatchEvent(new CustomEvent('deals:loaded',{detail:live})); }
       })
       .catch(()=>{}); // offline / API down → fallback stays
   })();
+
+  /* ---- deal video modal: plays the CRM's videoUrl inside the deck ----
+     The CRM stores share links, not embeds, so normalise them first: a Drive
+     /file/d/ID/view becomes /preview and a YouTube link becomes /embed/ID.
+     Anything else (a direct mp4, an already-embeddable URL) is used as-is. */
+  const vModal=document.getElementById('videoModal');
+  const vFrame=document.getElementById('videoFrame');
+  function embedUrl(u){
+    const drive=/drive\.google\.com\/file\/d\/([^/?#]+)/.exec(u);
+    if(drive) return 'https://drive.google.com/file/d/'+drive[1]+'/preview';
+    const yt=/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/.exec(u);
+    if(yt) return 'https://www.youtube.com/embed/'+yt[1];
+    return u;
+  }
+  function openVideo(url){ if(!url) return; vFrame.src=embedUrl(url); vModal.classList.add('open'); lockDeck(); }
+  function closeVideo(){ if(!vModal.classList.contains('open')) return; vModal.classList.remove('open'); vFrame.src='about:blank'; unlockDeck(); }
+  document.getElementById('videoClose').addEventListener('click',closeVideo);
+  vModal.addEventListener('click',e=>{ if(e.target===vModal) closeVideo(); });
+  window.addEventListener('keydown',e=>{ if(e.key==='Escape') closeVideo(); });
 
   /* ---- business-plan modal: the CRM investor view inside the deck ---- */
   const pModal=document.getElementById('planModal');
