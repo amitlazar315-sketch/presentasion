@@ -630,17 +630,12 @@ body.glmap-on .maphint{pointer-events:none}
 
 /* ---- slide 8: deal cards — same design language as the Hub's "העסקאות שלי"
    (white rounded card · 16:9 branded banner · status chip · city + profit row) ---- */
-/* scroll container is LTR so the scrollbar sits on the RIGHT of the cards;
-   the grid inside flips back to RTL so card order/text are untouched */
-.hubscroll{direction:ltr;overflow-y:auto;max-height:clamp(420px,62vh,700px);
-  margin-top:clamp(16px,2.6vh,30px);overscroll-behavior:contain;
-  padding:12px 10px 20px 14px;
-  scrollbar-width:thin;scrollbar-color:var(--cyan-brand) rgba(91,175,214,.15)}
-.hubscroll::-webkit-scrollbar{width:10px}
-.hubscroll::-webkit-scrollbar-track{background:rgba(91,175,214,.15);border-radius:8px}
-.hubscroll::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--cyan-brand),var(--blue-mid));
-  border-radius:8px;box-shadow:0 0 8px rgba(91,175,214,.5)}
-.hubscroll::-webkit-scrollbar-thumb:hover{background:var(--blue-mid)}
+/* No inner scroll box: the slide grows to hold every deal and the deck scrolls
+   it, the same way the phone already worked. As a fixed-height scroller it only
+   showed a row and a quarter of seven rows, so a wheel gesture over the grid was
+   swallowed by the list — ten of them to get past this slide while every other
+   slide took one or two. */
+.hubscroll{margin-top:clamp(16px,2.6vh,30px)}
 /* exactly 4 wide cards per row on desktop; steps down on narrow viewports */
 .hubgrid{direction:rtl;display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,1.25vw,18px)}
 .hubcard{position:relative;display:flex;flex-direction:column;text-align:right;border-radius:16px;overflow:hidden;
@@ -989,11 +984,9 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
   .grid-2,.grid-3,.grid-4,.matrix,.team,.engines,.rprocess,.plans2,
   .split,.invtabs,.deal-grid,.dash{grid-template-columns:1fr}
   /* slide 8 deal cards — ONE per row on a phone. Two-up left the card too narrow
-     for a one-line title and the stat row collided with its own hairlines.
-     The inner scroll box is dropped too: a nested scroller inside the deck is
-     what made the page feel stuck, so the slide just grows and the deck scrolls. */
+     for a one-line title and the stat row collided with its own hairlines. */
   #deals .slide__inner--wide{max-width:100%}
-  .hubscroll{max-height:none;overflow:visible;padding:0;margin-top:16px}
+  .hubscroll{margin-top:16px}
   .hubgrid{grid-template-columns:1fr;gap:14px}
   /* shorter banner so a full card still fits the screen at one-per-row */
   .hb-banner{padding-bottom:34%}
