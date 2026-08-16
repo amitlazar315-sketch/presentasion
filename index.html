@@ -704,19 +704,26 @@ body.glmap-on .maphint{pointer-events:none}
    shared evenly. If the three together still exceed the card, fitStats() below
    steps the whole row's font down — every size here is em-based off .hb-stats
    so one font-size on the row scales labels and numbers together. */
-.hb-stats{display:grid;grid-template-columns:repeat(3,minmax(max-content,1fr));
+/* Tracks are content-sized and the leftover space is shared EVENLY, including
+   at the two ends. Equal 1fr thirds looked centred but forced the long profit
+   range to fit a third of the card, which dragged every row down to 9px; the
+   old content+1fr mix went the other way and packed the outer columns flat
+   against the card edges. space-evenly keeps the text at full size and still
+   spaces the three groups alike. */
+.hb-stats{display:grid;grid-template-columns:repeat(3,max-content);justify-content:space-evenly;
   column-gap:10px;font-size:16px;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f7}
-.hb-stats.n2{grid-template-columns:repeat(2,minmax(max-content,1fr))}
-.hb-stats.n1{grid-template-columns:minmax(max-content,1fr)}
-/* NO min-width:0 here. It overrides a grid item's automatic minimum size, which
-   let the tracks shrink below their own text — the label/number kept their
-   nowrap width and painted straight over the next column. Leaving the automatic
-   minimum in place makes a track physically unable to be narrower than what it
-   holds, so columns can never collide. */
+.hb-stats.n2{grid-template-columns:repeat(2,max-content)}
+.hb-stats.n1{grid-template-columns:max-content}
+/* min-width:0 lets the three tracks stay exact equal thirds. Content-sized
+   tracks packed each column to its own text and shoved the outer two against the
+   card edges — on a phone that left a hole down the middle and the centring did
+   nothing. Equal thirds means a column can be narrower than its text, so
+   fitStats() below is what stops a collision: it shrinks the row until every
+   column's text fits inside its own third. */
 /* every column centred inside its own track, matching the centred title above —
    the three labels and their numbers sit on one shared axis instead of the outer
    two being pushed flush to the card edges */
-.hb-stats .st{display:flex;flex-direction:column;gap:.25em;align-items:center;text-align:center;position:relative;min-width:max-content}
+.hb-stats .st{display:flex;flex-direction:column;gap:.25em;align-items:center;text-align:center;position:relative;min-width:0}
 .hb-stats .st+.st::before{content:"";position:absolute;inset-inline-start:-5px;top:12%;bottom:12%;width:1px;background:#e8eef5}
 .hb-stats .st small{font-size:.72em;font-weight:700;color:#475569;letter-spacing:.01em;white-space:nowrap}
 .hb-stats .st b{font-family:var(--num);font-size:1.06em;font-weight:800;color:#1f3348;white-space:nowrap}
@@ -993,14 +1000,15 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
   .hb-banner .bicon{width:32px;height:32px}
   .hb-info{padding:12px 14px 13px}
   .hb-title{font-size:14px}
-  /* Phone stat row: tracks are pure max-content and the leftover width goes into
-     the GAPS (space-between), so profit sits flush right, זמן השקעה flush left
-     against the card edge, and equity floats between them. Equal 1fr tracks kept
-     the three groups bunched in the middle of the card, which is what read as
-     overlapping on a narrow screen. A track can never be squeezed below its own
-     text here, so the columns cannot run into each other. */
+  /* Phone stat row: tracks stay pure max-content — a track can never be squeezed
+     below its own text, so the columns cannot run into each other — and the
+     leftover width is shared EVENLY, ends included. space-between spent all of
+     it between the groups, pinning profit against the right card edge and זמן
+     השקעה against the left with a hole down the middle, so nothing lined up with
+     the centred title. Equal 1fr tracks are the other trap: they force the long
+     profit range into a third of the card and drag every row down to 9px. */
   .hb-stats{font-size:15px;grid-template-columns:auto auto auto;
-    justify-content:space-between;column-gap:14px;margin-top:10px;padding-top:10px}
+    justify-content:space-evenly;column-gap:14px;margin-top:10px;padding-top:10px}
   .hb-stats.n2{grid-template-columns:auto auto}
   .hb-stats.n1{grid-template-columns:auto}
   /* once the gaps stretch, a hairline pinned to a column edge lands nowhere
@@ -1830,10 +1838,12 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
        profit range shrinks while its neighbours stay full size, and the three
        stats inside one card always share one size. */
     const BASE=16;
-    /* How wide the row's text really wants to be. Measuring the row's
-       scrollWidth is not enough: the label and number are nowrap, so they can
-       paint outside a squeezed column while the row itself still reports as
-       fitting. Measure the text boxes themselves. */
+    /* The narrowest the row can be drawn: every column's own text plus the gaps
+       that must sit between them. Tracks are content-sized, so a column always
+       fits itself — what can overflow is the row inside the card. Measuring the
+       row's scrollWidth is not enough, because the label and number are nowrap
+       and can paint outside a squeezed column while the row still reports as
+       fitting, so measure the text boxes themselves. */
     function rowNeeds(row){
       const sts=[...row.querySelectorAll('.st')];
       const gap=parseFloat(getComputedStyle(row).columnGap)||0;
