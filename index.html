@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<!-- The whole deck is this one file, so a phone holding a stale copy shows an old
+     design with no way to tell. Make it revalidate instead of serving from cache. -->
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate" />
 <title>DUPLE · מצגת משקיעים · אסטרטגיה, לא מזל</title>
 
 <!-- ============ FONTS ============ -->
@@ -704,13 +707,18 @@ body.glmap-on .maphint{pointer-events:none}
      declaration was dropped and every row packed against the right-hand edge.
    · equal 1fr columns force the long profit range into a third of the card,
      which drags every row down to 9px. */
-.hb-stats{display:flex;column-gap:10px;font-size:16px;margin-top:12px;padding-top:12px;
+.hb-stats{display:flex;flex-direction:row;justify-content:space-between;align-items:flex-start;
+  column-gap:10px;font-size:16px;margin-top:12px;padding-top:12px;
   border-top:1px solid #eef2f7}
 /* flex:1 1 auto — base size is the column's own text, and the leftover width is
    split equally between them, so a wide value keeps the room it needs instead of
    being squeezed into a fixed share. min-width:0 lets a column give ground if a
    card is ever too narrow for its text, rather than pushing the row wider than
-   the card. */
+   the card.
+   The columns grow to fill the row, so the justify-content above normally has
+   nothing left to place. It is there as a floor: should an engine ever ignore
+   flex-grow, space-between still pushes the outer two columns to the card edges
+   rather than letting the row bunch against one side. */
 .hb-stats .st{display:flex;flex:1 1 auto;flex-direction:column;gap:.25em;align-items:center;text-align:center;position:relative;min-width:0}
 .hb-stats .st+.st::before{content:"";position:absolute;inset-inline-start:-5px;top:12%;bottom:12%;width:1px;background:#e8eef5}
 .hb-stats .st small{font-size:.72em;font-weight:700;color:#475569;letter-spacing:.01em;white-space:nowrap}
