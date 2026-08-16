@@ -691,34 +691,27 @@ body.glmap-on .maphint{pointer-events:none}
    this the × paints underneath the player and can't be clicked */
 #videoModal .modal__close{z-index:5;background:rgba(255,255,255,.92);color:#1f3348}
 #videoModal .modal__close:hover{background:#fff}
-/* stat row — dark-gray label above the number.
-   Columns are sized by CONTENT (minmax(max-content,1fr)), not by hand-tuned
-   fractions: fixed fr ratios kept starving whichever column happened to hold a
-   long value or a wide label, and its nowrap text spilled over the neighbour.
-   Now a column can never be narrower than what it holds; leftover space is
-   shared evenly. If the three together still exceed the card, fitStats() below
-   steps the whole row's font down — every size here is em-based off .hb-stats
-   so one font-size on the row scales labels and numbers together. */
-/* Tracks are content-sized and the leftover space is shared EVENLY, including
-   at the two ends. Equal 1fr thirds looked centred but forced the long profit
-   range to fit a third of the card, which dragged every row down to 9px; the
-   old content+1fr mix went the other way and packed the outer columns flat
-   against the card edges. space-evenly keeps the text at full size and still
-   spaces the three groups alike. */
-.hb-stats{display:grid;grid-template-columns:repeat(3,max-content);justify-content:space-evenly;
-  column-gap:10px;font-size:16px;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f7}
-.hb-stats.n2{grid-template-columns:repeat(2,max-content)}
-.hb-stats.n1{grid-template-columns:max-content}
-/* min-width:0 lets the three tracks stay exact equal thirds. Content-sized
-   tracks packed each column to its own text and shoved the outer two against the
-   card edges — on a phone that left a hole down the middle and the centring did
-   nothing. Equal thirds means a column can be narrower than its text, so
-   fitStats() below is what stops a collision: it shrinks the row until every
-   column's text fits inside its own third. */
-/* every column centred inside its own track, matching the centred title above —
-   the three labels and their numbers sit on one shared axis instead of the outer
-   two being pushed flush to the card edges */
-.hb-stats .st{display:flex;flex-direction:column;gap:.25em;align-items:center;text-align:center;position:relative;min-width:0}
+/* stat row — dark-gray label above the number. Every size here is em-based off
+   .hb-stats, so one font-size on the row scales labels and numbers together and
+   fitStats() below can shrink a row that still doesn't fit its card.
+
+   Flex, not grid, and deliberately no justify-content. Each column starts at its
+   own text width and then grows by an equal share of whatever is left, so the
+   row always spans the full card while each group stays centred over its own
+   number. The two layouts this replaces both failed:
+   · grid + justify-content:space-evenly worked in desktop Chrome but died on
+     mobile Safari, which doesn't honour space-evenly on a grid container — the
+     declaration was dropped and every row packed against the right-hand edge.
+   · equal 1fr columns force the long profit range into a third of the card,
+     which drags every row down to 9px. */
+.hb-stats{display:flex;column-gap:10px;font-size:16px;margin-top:12px;padding-top:12px;
+  border-top:1px solid #eef2f7}
+/* flex:1 1 auto — base size is the column's own text, and the leftover width is
+   split equally between them, so a wide value keeps the room it needs instead of
+   being squeezed into a fixed share. min-width:0 lets a column give ground if a
+   card is ever too narrow for its text, rather than pushing the row wider than
+   the card. */
+.hb-stats .st{display:flex;flex:1 1 auto;flex-direction:column;gap:.25em;align-items:center;text-align:center;position:relative;min-width:0}
 .hb-stats .st+.st::before{content:"";position:absolute;inset-inline-start:-5px;top:12%;bottom:12%;width:1px;background:#e8eef5}
 .hb-stats .st small{font-size:.72em;font-weight:700;color:#475569;letter-spacing:.01em;white-space:nowrap}
 .hb-stats .st b{font-family:var(--num);font-size:1.06em;font-weight:800;color:#1f3348;white-space:nowrap}
@@ -993,20 +986,13 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
   .hb-banner .bicon{width:32px;height:32px}
   .hb-info{padding:12px 14px 13px}
   .hb-title{font-size:14px}
-  /* Phone stat row: tracks stay pure max-content — a track can never be squeezed
-     below its own text, so the columns cannot run into each other — and the
-     leftover width is shared EVENLY, ends included. space-between spent all of
-     it between the groups, pinning profit against the right card edge and זמן
-     השקעה against the left with a hole down the middle, so nothing lined up with
-     the centred title. Equal 1fr tracks are the other trap: they force the long
-     profit range into a third of the card and drag every row down to 9px. */
-  .hb-stats{font-size:15px;grid-template-columns:auto auto auto;
-    justify-content:space-evenly;column-gap:14px;margin-top:10px;padding-top:10px}
-  .hb-stats.n2{grid-template-columns:auto auto}
-  .hb-stats.n1{grid-template-columns:auto}
-  /* once the gaps stretch, a hairline pinned to a column edge lands nowhere
-     meaningful — the spacing itself separates the groups */
-  .hb-stats .st+.st::before{display:none}
+  /* Phone stat row: only the spacing changes — the flex sizing in the base rule
+     is what makes the row span the card, and it behaves the same on iOS as it
+     does on a desktop. The grid overrides that used to live here relied on
+     justify-content, which mobile Safari ignored on a grid container, so the
+     whole row collapsed to the right-hand edge on a phone while looking correct
+     on a desktop. The hairlines stay, so the groups read the same on both. */
+  .hb-stats{font-size:15px;column-gap:14px;margin-top:10px;padding-top:10px}
   /* no lift on touch — there is no hover, and the transform caused sideways drift */
   .hubcard:hover{transform:none;box-shadow:0 6px 18px rgba(10,22,40,.10)}
   /* typography */
@@ -1817,8 +1803,8 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
       if(d.profit) st.push('<span class="st hero"><small>פוטנציאל רווח</small><b>'+R(d.profit)+'<span class="u">₪</span></b></span>');
       if(d.equity) st.push('<span class="st"><small>הון עצמי</small><b>'+R(d.equity)+'<span class="u">₪</span></b></span>');
       if(d.years)  st.push('<span class="st"><small>זמן השקעה</small><b><bdi>'+esc(d.years)+'</bdi><span class="u">שנים</span></b></span>');
-      const nCls=st.length===2?' n2':st.length===1?' n1':'';
-      const stats=st.length?'<span class="hb-stats'+nCls+'">'+st.join('')+'</span>':'';
+      // no column-count class needed — flex lays out however many stats a deal has
+      const stats=st.length?'<span class="hb-stats">'+st.join('')+'</span>':'';
       return '<button class="hubcard" data-key="'+esc(d.key)+'" title="'+esc(d.title)+'">'+
         '<span class="hb-banner">'+banner+chip+vchip+'</span>'+
         '<span class="hb-info">'+
