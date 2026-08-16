@@ -673,19 +673,26 @@ body.glmap-on .maphint{pointer-events:none}
   box-shadow:0 2px 8px rgba(10,22,40,.18)}
 .hb-status.ok{background:#dcfce7;color:#166534;border-color:#bbf7d0}
 .hb-status.chk{background:#fef9c3;color:#854d0e;border-color:#fde68a}
-/* stat row — dark-gray label above the number; all three numbers share one size
-   per card (a long profit range shrinks the whole row, never a single column) */
-.hb-stats{display:grid;column-gap:10px;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f7}
-.hb-stats .st{display:flex;flex-direction:column;gap:4px;align-items:center;text-align:center;position:relative;min-width:0}
+/* stat row — dark-gray label above the number.
+   Columns are sized by CONTENT (minmax(max-content,1fr)), not by hand-tuned
+   fractions: fixed fr ratios kept starving whichever column happened to hold a
+   long value or a wide label, and its nowrap text spilled over the neighbour.
+   Now a column can never be narrower than what it holds; leftover space is
+   shared evenly. If the three together still exceed the card, fitStats() below
+   steps the whole row's font down — every size here is em-based off .hb-stats
+   so one font-size on the row scales labels and numbers together. */
+.hb-stats{display:grid;grid-template-columns:repeat(3,minmax(max-content,1fr));
+  column-gap:10px;font-size:16px;margin-top:12px;padding-top:12px;border-top:1px solid #eef2f7}
+.hb-stats.n2{grid-template-columns:repeat(2,minmax(max-content,1fr))}
+.hb-stats.n1{grid-template-columns:minmax(max-content,1fr)}
+.hb-stats .st{display:flex;flex-direction:column;gap:.25em;align-items:center;text-align:center;position:relative;min-width:0}
 /* the row spans the card edge-to-edge: first stat flush to the card's start,
    last flush to its end, middle centred — so the block aligns with the title */
 .hb-stats .st:first-child{align-items:flex-start;text-align:start}
 .hb-stats .st:last-child{align-items:flex-end;text-align:end}
 .hb-stats .st+.st::before{content:"";position:absolute;inset-inline-start:-5px;top:12%;bottom:12%;width:1px;background:#e8eef5}
-.hb-stats .st small{font-size:11.5px;font-weight:700;color:#475569;letter-spacing:.01em;white-space:nowrap}
-.hb-stats .st b{font-family:var(--num);font-size:17px;font-weight:800;color:#1f3348;white-space:nowrap}
-.hb-stats.sm .st b{font-size:15.5px}
-.hb-stats.xs .st b{font-size:14px}
+.hb-stats .st small{font-size:.72em;font-weight:700;color:#475569;letter-spacing:.01em;white-space:nowrap}
+.hb-stats .st b{font-family:var(--num);font-size:1.06em;font-weight:800;color:#1f3348;white-space:nowrap}
 .hb-stats .st.hero b{color:#16a34a}
 .hb-stats .st .u{font-size:.78em;font-weight:700;color:#8aa5bb;margin-inline-start:2px}
 .hb-stats .st.hero .u{color:#4ab27a}
@@ -853,11 +860,20 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
 /* ====================================================================
    RESPONSIVE
    ==================================================================== */
-@media (max-width:1080px){
+/* Deal grid column steps. Thresholds are derived from the width a card needs to
+   show its three stats legibly (~320px of card, ~290px of content) — not from
+   round numbers. Packing 4 columns onto a 1280px laptop left 235px cards and the
+   stat row had to shrink past readable to fit. */
+@media (max-width:1479px){
   .hubgrid{grid-template-columns:repeat(3,1fr)}
 }
-@media (max-width:900px){
+@media (max-width:1119px){
   .hubgrid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:759px){
+  .hubgrid{grid-template-columns:1fr}
+}
+@media (max-width:900px){
   .grid-4{grid-template-columns:repeat(2,1fr)}
   .grid-3{grid-template-columns:repeat(2,1fr)}
   .deal-grid,.split,.engines,.dash,.maplayout,.dealgrid{grid-template-columns:1fr}
@@ -950,11 +966,8 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
   .hb-banner .bicon{width:32px;height:32px}
   .hb-info{padding:12px 14px 13px}
   .hb-title{font-size:14px}
-  .hb-stats{column-gap:8px;margin-top:10px;padding-top:10px}
-  .hb-stats .st small{font-size:11px}
-  .hb-stats .st b{font-size:16px}
-  .hb-stats.sm .st b{font-size:14.5px}
-  .hb-stats.xs .st b{font-size:13px}
+  /* one font-size drives the whole row (labels + numbers are em-based) */
+  .hb-stats{font-size:15px;column-gap:8px;margin-top:10px;padding-top:10px}
   /* no lift on touch — there is no hover, and the transform caused sideways drift */
   .hubcard:hover{transform:none;box-shadow:0 6px 18px rgba(10,22,40,.10)}
   /* typography */
@@ -1740,25 +1753,39 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
       // uniform branded banner on every card — no property photos
       const banner='<span class="dots"></span>'+BUILDING+
         '<span class="hb-hover"><span>'+MAXI+' צפייה בעסקה</span></span>';
-      // one bottom stat row — profit (green) | equity | years. all three numbers
-      // share a single size per card: the longest value shrinks the whole row
+      // one bottom stat row — profit (green) | equity | years. widths come from
+      // the CSS content-sized columns; fitStats() scales the row down if needed
       const st=[];
       if(d.profit) st.push('<span class="st hero"><small>פוטנציאל רווח</small><b>'+R(d.profit)+'<span class="u">₪</span></b></span>');
       if(d.equity) st.push('<span class="st"><small>הון עצמי</small><b>'+R(d.equity)+'<span class="u">₪</span></b></span>');
       if(d.years)  st.push('<span class="st"><small>זמן השקעה</small><b><bdi>'+esc(d.years)+'</bdi><span class="u">שנים</span></b></span>');
-      const longest=Math.max(0,...[d.profit,d.equity,d.years].filter(Boolean).map(v=>String(v).length));
-      const rowCls=longest>18?' xs':longest>12?' sm':'';
-      // the profit column widens as its value gets longer, so a range never
-      // spills past the hairline into the equity column
-      const cols3=rowCls===' xs'?'2.05fr .95fr .8fr':rowCls===' sm'?'1.75fr 1fr .78fr':'1.5fr 1.05fr .8fr';
-      const cols=st.length===3?cols3:st.length===2?'1.3fr 1fr':'1fr';
-      const stats=st.length?'<span class="hb-stats'+rowCls+'" style="grid-template-columns:'+cols+'">'+st.join('')+'</span>':'';
+      const nCls=st.length===2?' n2':st.length===1?' n1':'';
+      const stats=st.length?'<span class="hb-stats'+nCls+'">'+st.join('')+'</span>':'';
       return '<button class="hubcard" data-key="'+esc(d.key)+'" title="'+esc(d.title)+'">'+
         '<span class="hb-banner">'+banner+chip+'</span>'+
         '<span class="hb-info">'+
           '<span class="hb-toprow"><span class="hb-title">'+esc(d.title)+'</span></span>'+stats+
         '</span></button>';
     };
+    /* Shrink any stat row whose three content-sized columns don't fit the card.
+       Values come from the CRM, so no fixed font size is safe for every deal —
+       measure instead. Each row keeps its own scale, so a card with a long
+       profit range shrinks while its neighbours stay full size, and the three
+       stats inside one card always share one size. */
+    const BASE=16;
+    function fitStats(){
+      grid.querySelectorAll('.hb-stats').forEach(row=>{
+        row.style.fontSize='';   // back to the stylesheet value before measuring
+        const base=parseFloat(getComputedStyle(row).fontSize)||BASE;
+        let px=base;
+        // step down 1px at a time; floor at 72% so it never becomes unreadable
+        const min=base*0.72;
+        while(row.scrollWidth>row.clientWidth+1 && px>min){
+          px-=1;
+          row.style.fontSize=px+'px';
+        }
+      });
+    }
     function show(list){
       LIST=list;
       grid.innerHTML=LIST.map(card).join('');
@@ -1767,7 +1794,12 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
         // business plans open INSIDE the deck (iframe modal) — the investor never leaves
         if(d.url) openPlan(d.url); else openDeal(d.key);
       }));
+      fitStats();
     }
+    // column widths change with the viewport (4 → 3 → 2 → 1 up), so re-fit
+    let fitT; addEventListener('resize',()=>{ clearTimeout(fitT); fitT=setTimeout(fitStats,120); });
+    // webfonts land after first paint and change every measurement
+    if(document.fonts && document.fonts.ready) document.fonts.ready.then(fitStats);
     show(FALLBACK);
     // live deals — CRM public API (approved / in-review plans)
     const fmt=n=>Math.round(n).toLocaleString('en-US');
