@@ -1848,18 +1848,23 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
       });
       return need;
     }
+    /* ONE size for every card. Sizing each row on its own made a card holding a
+       long profit range render at 13px next to a neighbour at 15px, so the
+       labels and numbers visibly disagreed down the grid. Find the largest size
+       at which EVERY row still fits and give it to all of them, so the deals
+       read as one table however wide or narrow the values are. */
     function fitStats(){
-      grid.querySelectorAll('.hb-stats').forEach(row=>{
-        row.style.fontSize='';   // back to the stylesheet value before measuring
-        const base=parseFloat(getComputedStyle(row).fontSize)||BASE;
-        let px=base;
-        // step down 1px at a time; floor at 68% so it never becomes unreadable
-        const min=base*0.68;
-        while(rowNeeds(row)>row.clientWidth+0.2 && px>min){
-          px-=1;
-          row.style.fontSize=px+'px';
-        }
-      });
+      const rows=[...grid.querySelectorAll('.hb-stats')];
+      if(!rows.length) return;
+      rows.forEach(r=>r.style.fontSize='');   // back to the stylesheet value before measuring
+      const base=parseFloat(getComputedStyle(rows[0]).fontSize)||BASE;
+      const min=base*0.68;                    // floor, so it never becomes unreadable
+      let px=base;
+      // step down 1px at a time until the widest row fits — all rows move together
+      while(px>min && rows.some(r=>rowNeeds(r)>r.clientWidth+0.2)){
+        px-=1;
+        rows.forEach(r=>r.style.fontSize=px+'px');
+      }
     }
     function show(list){
       LIST=list;
@@ -1934,35 +1939,36 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
      redirects to the Google sign-in page — HTML, which fails to decode as an
      image and fires onerror. Cached per file id and prefetched when the cards
      render, so a click almost always resolves instantly. */
-  const vProbe=new Map(), vProbeAll=[];
+  const vProbe=new Map();
+  function probeImg(src){
+    return new Promise(done=>{
+      const img=new Image();
+      // Drive refuses hotlinked thumbnails when a Referer is sent, which would
+      // fail every file and mark even public videos private
+      img.referrerPolicy='no-referrer';
+      let settled=false;
+      const fin=v=>{ if(!settled){ settled=true; done(v); } };
+      img.onload=()=>fin(img.naturalWidth>0);
+      img.onerror=()=>fin(false);
+      setTimeout(()=>fin(false),8000);   // a hung request is not an answer
+      img.src=src;
+    });
+  }
+  /* Two different hosts serve Drive thumbnails and they don't fail together, so
+     a file is only treated as unreachable once BOTH have refused it. Never fall
+     back to embedding an unverified file: a restricted one renders Google's
+     sign-in screen inside the deck, which is a dead end for an investor — the
+     notice is what should show instead. */
   function isShared(url){
     const id=driveId(url);
     if(!id) return Promise.resolve(true);   // not a Drive link — nothing to check
-    if(!vProbe.has(id)){
-      const p=new Promise(done=>{
-        const img=new Image();
-        // Drive refuses hotlinked thumbnails when a Referer is sent, which would
-        // fail every file and mark even public videos private
-        img.referrerPolicy='no-referrer';
-        img.onload=()=>done(img.naturalWidth>0);
-        img.onerror=()=>done(false);
-        img.src='https://drive.google.com/thumbnail?id='+id+'&sz=w320';
-      });
-      vProbe.set(id,p); vProbeAll.push(p);
-    }
+    if(!vProbe.has(id)) vProbe.set(id,(async()=>{
+      const hosts=['https://drive.google.com/thumbnail?id='+id+'&sz=w320',
+                   'https://lh3.googleusercontent.com/d/'+id+'=w320'];
+      for(const h of hosts){ if(await probeImg(h)) return true; }
+      return false;
+    })());
     return vProbe.get(id);
-  }
-  /* A failed probe on its own does NOT prove the file is private: Google
-     throttles the thumbnail endpoint per IP and then fails every request, which
-     would label perfectly shareable videos private — a worse lie than the
-     sign-in screen we're replacing. So only claim "private" when some OTHER
-     Drive probe this session succeeded, proving the channel actually works.
-     If nothing got through, fall back to the player and let Drive speak. */
-  function isPrivate(url){
-    return isShared(url).then(ok=>{
-      if(ok) return false;
-      return Promise.all(vProbeAll).then(rs=>rs.some(Boolean));
-    });
   }
   window.__probeVideo=isShared;   // used by the deal cards to warm the cache
   let vSeq=0;
@@ -1971,10 +1977,10 @@ body.modal-open #deck{overflow:hidden;touch-action:none}
     const token=++vSeq;
     vFrame.hidden=true; vPriv.hidden=true;   // neither state until we know which
     vModal.classList.add('open'); lockDeck();
-    isPrivate(url).then(priv=>{
+    isShared(url).then(ok=>{
       if(token!==vSeq || !vModal.classList.contains('open')) return;  // superseded
-      if(priv){ vPriv.hidden=false; }
-      else    { vFrame.hidden=false; vFrame.src=embedUrl(url); }
+      if(ok){ vFrame.hidden=false; vFrame.src=embedUrl(url); }
+      else  { vPriv.hidden=false; }
     });
   }
   function closeVideo(){
